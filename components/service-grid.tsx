@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react"
 import { ServiceCard } from "@/components/service-card"
-import { mockServices } from "@/app/page"
+import { services } from "@/lib/services"
+import type { Service } from "@/lib/services"
 
 interface ServiceGridProps {
-  onServiceClick: (service: (typeof mockServices)[0]) => void
+  onServiceClick: (service: Service) => void
   filters: { category: string | null; search: string }
 }
 
@@ -13,7 +14,7 @@ export function ServiceGrid({ onServiceClick, filters }: ServiceGridProps) {
   const [workTypeFilter, setWorkTypeFilter] = useState<string | null>(null)
 
   const filteredServices = useMemo(() => {
-    return mockServices.filter((service) => {
+    return services.filter((service) => {
       // Category filter
       if (filters.category && !service.categories.includes(filters.category)) {
         return false

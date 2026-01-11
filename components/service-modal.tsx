@@ -1,11 +1,11 @@
 "use client"
 
 import Image from "next/image"
-import { X } from "lucide-react"
-import type { mockServices } from "@/app/page"
+import { X, Phone, Mail, MessageCircle } from "lucide-react"
+import type { Service } from "@/lib/services"
 
 interface ServiceModalProps {
-  service: (typeof mockServices)[0]
+  service: Service
   onClose: () => void
 }
 
@@ -91,12 +91,63 @@ export function ServiceModal({ service, onClose }: ServiceModalProps) {
             </p>
           </div>
 
-          {/* Contact Placeholder */}
-          <div className="bg-muted/50 rounded-xl p-6">
-            <h3 className="text-lg font-medium text-foreground mb-2">Contact Information</h3>
-            <p className="text-muted-foreground text-sm">
-              Contact details and direct messaging coming soon. For now, ask for recommendations in the community.
-            </p>
+          {/* Contact Information */}
+          <div className="bg-muted/50 rounded-xl p-6 space-y-4">
+            <h3 className="text-lg font-medium text-foreground mb-4">Contact Information</h3>
+            
+            {/* Phone Number */}
+            <div className="flex items-center gap-3">
+              <Phone size={20} className="text-primary" />
+              <div>
+                <p className="text-sm font-medium text-foreground">Phone</p>
+                <a 
+                  href={`tel:${service.phoneNumber}`}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {service.phoneNumber}
+                </a>
+              </div>
+            </div>
+
+            {/* Reference Contact */}
+            {service.reference && (
+              <div className="pt-4 border-t border-border space-y-3">
+                <p className="text-sm font-medium text-foreground">Reference Contact</p>
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Name: <span className="text-foreground font-medium">{service.reference.name}</span></p>
+                  </div>
+                  {service.reference.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone size={16} className="text-muted-foreground" />
+                      <a 
+                        href={`tel:${service.reference.phone}`}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        {service.reference.phone}
+                      </a>
+                    </div>
+                  )}
+                  {service.reference.whatsapp && (
+                    <div className="flex items-center gap-2">
+                      <MessageCircle size={16} className="text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Available via WhatsApp</span>
+                    </div>
+                  )}
+                  {service.reference.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail size={16} className="text-muted-foreground" />
+                      <a 
+                        href={`mailto:${service.reference.email}`}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        {service.reference.email}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Close Button (Mobile Friendly) */}

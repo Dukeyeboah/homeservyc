@@ -28,7 +28,7 @@ export function Navigation({ onAddClick }: { onAddClick: () => void }) {
         <div className="flex items-center justify-between gap-6">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
-            <span className="text-2xl font-medium tracking-tight">HomeServys</span>
+            <span className="text-2xl font-medium tracking-tight">HomeServyc</span>
           </Link>
 
           {/* Right side: Categories, Search, Add button */}
