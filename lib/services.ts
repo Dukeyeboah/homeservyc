@@ -1596,3 +1596,14 @@ export const services: Service[] = [
     },
   },
 ];
+
+// Extract all unique categories from services
+export function getAllCategories(): string[] {
+  const categorySet = new Set<string>();
+  services.forEach((service) => {
+    service.categories.forEach((category) => {
+      categorySet.add(category);
+    });
+  });
+  return Array.from(categorySet).sort();
+}
