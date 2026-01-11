@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronDown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,25 @@ const categories = getAllCategories();
 export function Navigation({ onAddClick }: { onAddClick: () => void }) {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Listen to filter changes to keep selectedCategory in sync
+  useEffect(() => {
+    const handleFilterChange = (e: CustomEvent) => {
+      if (e.detail.category !== undefined) {
+        setSelectedCategory(e.detail.category);
+      }
+    };
+
+    window.addEventListener(
+      'filterChanged',
+      handleFilterChange as EventListener
+    );
+    return () =>
+      window.removeEventListener(
+        'filterChanged',
+        handleFilterChange as EventListener
+      );
+  }, []);
 
   return (
     <nav className='sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border'>
@@ -31,7 +50,7 @@ export function Navigation({ onAddClick }: { onAddClick: () => void }) {
                 onClick={() => setCategoryOpen(!categoryOpen)}
                 className='flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted rounded-lg transition-colors'
               >
-                Categories
+                {selectedCategory || 'Categories'}
                 <ChevronDown
                   size={16}
                   className={`transition-transform ${

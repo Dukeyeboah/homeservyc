@@ -44,6 +44,16 @@ export function ServiceGrid({ onServiceClick, filters }: ServiceGridProps) {
       <div className="max-w-7xl mx-auto">
         {/* Filter Pills */}
         <div className="flex flex-wrap gap-3 mb-12">
+          <button
+            onClick={() => setWorkTypeFilter(null)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              workTypeFilter === null
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-foreground hover:bg-muted"
+            }`}
+          >
+            All
+          </button>
           {["Full-time", "Part-time"].map((type) => (
             <button
               key={type}
