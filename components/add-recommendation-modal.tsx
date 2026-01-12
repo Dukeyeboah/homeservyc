@@ -4,31 +4,28 @@ import type React from "react"
 
 import { useState } from "react"
 import { X, Upload } from "lucide-react"
+import { getAllCategories } from "@/lib/services"
+import { useAuth } from "@/contexts/auth-context"
+import { submitRecommendation } from "@/lib/firestore"
 
-const categories = [
-  "Caretaker / Nanny",
-  "Housekeeper / House Help",
-  "Watchman / Night Guard / Security",
-  "Cook / Chef",
-  "Gardener",
-  "Driver",
-  "Cleaner",
-  "Washing Lady",
-  "Pet Care",
-  "Piano Teacher",
-]
+const categories = getAllCategories()
 
 interface AddRecommendationModalProps {
   onClose: () => void
 }
 
 export function AddRecommendationModal({ onClose }: AddRecommendationModalProps) {
+  const [userType, setUserType] = useState<"recommender" | "service-personnel">("recommender")
   const [formData, setFormData] = useState({
     name: "",
     categories: [] as string[],
     workType: "Full-time" as "Full-time" | "Part-time",
     notes: "",
     location: "",
+    servicePersonnelPhone: "",
+    servicePersonnelPhoneWhatsApp: false,
+    recommenderPhone: "",
+    recommenderPhoneWhatsApp: false,
   })
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
@@ -54,12 +51,41 @@ export function AddRecommendationModal({ onClose }: AddRecommendationModalProps)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { user, isAuthenticated } = useAuth()
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would submit to a backend
-    console.log("Form submitted:", { ...formData, photo: photoFile })
-    alert("Thank you for your recommendation! It will be reviewed and added to the directory soon.")
-    onClose()
+    
+    if (!isAuthenticated || !user) {
+      alert("Please sign in to submit a recommendation.")
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await submitRecommendation(user.uid, {
+        userType,
+        name: formData.name,
+        categories: formData.categories,
+        workType: formData.workType,
+        description: formData.notes,
+        location: formData.location,
+        phoneNumber: formData.servicePersonnelPhone,
+        phoneNumberWhatsApp: formData.servicePersonnelPhoneWhatsApp,
+        recommenderPhone: userType === "recommender" ? formData.recommenderPhone : undefined,
+        recommenderPhoneWhatsApp: userType === "recommender" ? formData.recommenderPhoneWhatsApp : undefined,
+        // photoUrl will be handled when we implement file upload
+      })
+      
+      alert("Thank you for your recommendation! It will be reviewed and added to the directory soon.")
+      onClose()
+    } catch (error) {
+      console.error("Error submitting recommendation:", error)
+      alert("There was an error submitting your recommendation. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -85,6 +111,37 @@ export function AddRecommendationModal({ onClose }: AddRecommendationModalProps)
           <div>
             <h2 className="text-3xl font-medium text-foreground mb-2">Add a Recommendation</h2>
             <p className="text-muted-foreground">Share a trusted service provider with the community</p>
+          </div>
+
+          {/* User Type Radio */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-3">
+              Are you a recommender or the service personnel?
+            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setUserType("recommender")}
+                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                  userType === "recommender"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-foreground hover:bg-muted border border-border"
+                }`}
+              >
+                Recommender
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserType("service-personnel")}
+                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                  userType === "service-personnel"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-foreground hover:bg-muted border border-border"
+                }`}
+              >
+                Service Personnel
+              </button>
+            </div>
           </div>
 
           {/* Full Name */}
@@ -191,6 +248,59 @@ export function AddRecommendationModal({ onClose }: AddRecommendationModalProps)
             </div>
           </div>
 
+          {/* Service Personnel Phone Number */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Service Personnel Phone Number
+            </label>
+            <div className="space-y-2">
+              <input
+                type="tel"
+                required
+                value={formData.servicePersonnelPhone}
+                onChange={(e) => setFormData((prev) => ({ ...prev, servicePersonnelPhone: e.target.value }))}
+                className="w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all"
+                placeholder="e.g., 0241234567"
+              />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.servicePersonnelPhoneWhatsApp}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, servicePersonnelPhoneWhatsApp: e.target.checked }))}
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-accent"
+                />
+                <span className="text-sm text-foreground">This is a WhatsApp number</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Recommender Phone Number (only if user is recommender) */}
+          {userType === "recommender" && (
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Your Phone Number (Recommender)
+              </label>
+              <div className="space-y-2">
+                <input
+                  type="tel"
+                  value={formData.recommenderPhone}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, recommenderPhone: e.target.value }))}
+                  className="w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all"
+                  placeholder="e.g., 0241234567"
+                />
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.recommenderPhoneWhatsApp}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, recommenderPhoneWhatsApp: e.target.checked }))}
+                    className="w-4 h-4 rounded border-border text-primary focus:ring-2 focus:ring-accent"
+                  />
+                  <span className="text-sm text-foreground">This is a WhatsApp number</span>
+                </label>
+              </div>
+            </div>
+          )}
+
           {/* Notes / Recommendation */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">Notes & Recommendation</label>
@@ -206,10 +316,10 @@ export function AddRecommendationModal({ onClose }: AddRecommendationModalProps)
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!formData.name || formData.categories.length === 0}
+            disabled={!formData.name || formData.categories.length === 0 || !formData.servicePersonnelPhone || submitting || !isAuthenticated}
             className="w-full py-3 bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-primary-foreground font-medium rounded-lg transition-colors"
           >
-            Submit Recommendation
+            {submitting ? "Submitting..." : !isAuthenticated ? "Please Sign In" : "Submit Recommendation"}
           </button>
 
           {/* Disclaimer */}
