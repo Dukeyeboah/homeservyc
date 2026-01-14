@@ -32,7 +32,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-S2L1RSBWP7
 
 ### Important Notes:
 
-1. **NEXT_PUBLIC_** prefix is required for Next.js to expose these variables to the browser
+1. **NEXT*PUBLIC*** prefix is required for Next.js to expose these variables to the browser
 2. These values are safe to expose in the client-side code (Firebase security is handled by Firestore rules)
 3. Make sure to set these for all environments (Production, Preview, Development) if needed
 4. After adding variables, you'll need to redeploy your application for changes to take effect
@@ -40,6 +40,7 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-S2L1RSBWP7
 ### Getting Your Firebase Config:
 
 If you need to retrieve these values:
+
 1. Go to [Firebase Console](https://console.firebase.google.com/)
 2. Select your project (homeservyc)
 3. Go to **Project Settings** (gear icon)
@@ -53,4 +54,3 @@ If you need to retrieve these values:
 2. Click the three dots (⋯) on the latest deployment
 3. Select **Redeploy**
 4. Your app will rebuild with the new environment variables
-

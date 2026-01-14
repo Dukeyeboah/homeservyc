@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { getSavedServices, unsaveService, type SavedService } from '@/lib/firestore';
+import {
+  getSavedServices,
+  unsaveService,
+  type SavedService,
+} from '@/lib/firestore';
 import { ServiceCard } from '@/components/service-card';
 import { ServiceModal } from '@/components/service-modal';
 import { AuthModal } from '@/components/auth-modal';
@@ -48,9 +52,7 @@ export default function Dashboard() {
     if (!user) return;
     try {
       await unsaveService(user.uid, serviceId);
-      setSavedServices((prev) =>
-        prev.filter((s) => s.serviceId !== serviceId)
-      );
+      setSavedServices((prev) => prev.filter((s) => s.serviceId !== serviceId));
     } catch (error) {
       console.error('Error unsaving service:', error);
     }
@@ -62,8 +64,8 @@ export default function Dashboard() {
 
   if (loading || loadingServices) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className='min-h-screen bg-background flex items-center justify-center'>
+        <p className='text-muted-foreground'>Loading...</p>
       </div>
     );
   }
@@ -71,9 +73,9 @@ export default function Dashboard() {
   if (!isAuthenticated) {
     return (
       <>
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-muted-foreground mb-4">
+        <div className='min-h-screen bg-background flex items-center justify-center'>
+          <div className='text-center'>
+            <p className='text-muted-foreground mb-4'>
               Please sign in to view your dashboard
             </p>
           </div>
@@ -81,7 +83,7 @@ export default function Dashboard() {
         {showAuthModal && (
           <AuthModal
             onClose={() => setShowAuthModal(false)}
-            initialMode="signin"
+            initialMode='signin'
           />
         )}
       </>
@@ -89,21 +91,21 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className='min-h-screen bg-background'>
       <Navigation onAddClick={() => {}} />
-      <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-foreground mb-2">
+      <div className='max-w-7xl mx-auto px-4 py-12 md:py-20'>
+        <div className='mb-8'>
+          <h1 className='text-3xl font-semibold text-foreground mb-2'>
             My Dashboard
           </h1>
-          <p className="text-muted-foreground">
+          <p className='text-muted-foreground'>
             Your saved service providers organized by category
           </p>
         </div>
 
         {/* Category Filter */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-3">
+        <div className='mb-8'>
+          <div className='flex flex-wrap gap-3'>
             <button
               onClick={() => setCategoryFilter(null)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
@@ -133,10 +135,10 @@ export default function Dashboard() {
         </div>
 
         {/* Results Count */}
-        <div className="mb-8">
-          <p className="text-muted-foreground text-sm">
+        <div className='mb-8'>
+          <p className='text-muted-foreground text-sm'>
             Showing{' '}
-            <span className="font-medium text-foreground">
+            <span className='font-medium text-foreground'>
               {filteredServices.length}
             </span>{' '}
             saved service{filteredServices.length !== 1 ? 's' : ''}
@@ -145,9 +147,9 @@ export default function Dashboard() {
 
         {/* Services Grid */}
         {filteredServices.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {filteredServices.map((savedService) => (
-              <div key={savedService.id} className="relative">
+              <div key={savedService.id} className='relative'>
                 <ServiceCard
                   {...savedService.service}
                   service={savedService.service}
@@ -155,21 +157,24 @@ export default function Dashboard() {
                 />
                 <button
                   onClick={() => handleUnsave(savedService.serviceId)}
-                  className="absolute top-4 right-4 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background transition-colors"
-                  title="Remove from saved"
+                  className='absolute top-4 right-4 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background transition-colors'
+                  title='Remove from saved'
                 >
-                  <BookmarkCheck size={20} className="text-[#dc143c]" />
+                  <BookmarkCheck size={20} className='text-[#dc143c]' />
                 </button>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-20">
-            <Bookmark size={48} className="mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground text-lg">
+          <div className='text-center py-20'>
+            <Bookmark
+              size={48}
+              className='mx-auto text-muted-foreground mb-4'
+            />
+            <p className='text-muted-foreground text-lg'>
               No saved services yet
             </p>
-            <p className="text-muted-foreground text-sm mt-2">
+            <p className='text-muted-foreground text-sm mt-2'>
               Start saving service providers to organize them here
             </p>
           </div>
@@ -187,4 +192,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

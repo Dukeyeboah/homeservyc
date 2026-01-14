@@ -41,23 +41,23 @@ export function UserMenu() {
   const displayName = user?.displayName || user?.email?.split('@')[0] || 'User';
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className='relative' ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1.5 rounded-full hover:bg-muted transition-colors"
+        className='flex items-center gap-2 p-1.5 rounded-full hover:bg-muted transition-colors'
       >
         {userPhoto ? (
-          <div className="relative w-8 h-8 rounded-full overflow-hidden border-2 border-primary">
+          <div className='relative w-8 h-8 rounded-full overflow-hidden border-2 border-primary'>
             <Image
               src={userPhoto}
               alt={displayName}
               fill
-              className="object-cover"
+              className='object-cover'
             />
           </div>
         ) : (
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary">
-            <User size={18} className="text-primary" />
+          <div className='w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary'>
+            <User size={18} className='text-primary' />
           </div>
         )}
         <ChevronDown
@@ -71,32 +71,32 @@ export function UserMenu() {
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 z-10"
+            className='fixed inset-0 z-10'
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-full right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-20">
-            <div className="px-4 py-2 border-b border-border">
-              <p className="text-sm font-medium text-foreground truncate">
+          <div className='absolute top-full right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-2 z-20'>
+            <div className='px-4 py-2 border-b border-border'>
+              <p className='text-sm font-medium text-foreground truncate'>
                 {displayName}
               </p>
-              <p className="text-xs text-muted-foreground truncate">
+              <p className='text-xs text-muted-foreground truncate'>
                 {user?.email}
               </p>
             </div>
 
             <Link
-              href="/dashboard"
+              href='/dashboard'
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+              className='flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors'
             >
               <LayoutDashboard size={18} />
               Dashboard
             </Link>
 
             <Link
-              href="/profile"
+              href='/profile'
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+              className='flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors'
             >
               <User size={18} />
               Profile
@@ -104,7 +104,7 @@ export function UserMenu() {
 
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left"
+              className='w-full flex items-center gap-3 px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors text-left'
             >
               <LogOut size={18} />
               Sign Out
@@ -115,4 +115,3 @@ export function UserMenu() {
     </div>
   );
 }
-

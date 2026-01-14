@@ -8,12 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import { Navigation } from '@/components/navigation';
 import { Footer } from '@/components/footer';
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-} from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth as useAuthHook } from '@/contexts/auth-context';
 
@@ -38,12 +33,7 @@ const AGE_RANGES = [
   'Prefer not to say',
 ];
 
-const GENDERS = [
-  'Male',
-  'Female',
-  'Non-binary',
-  'Prefer not to say',
-];
+const GENDERS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
 
 const RACES = [
   'Black/African',
@@ -133,7 +123,7 @@ export default function ProfilePage() {
       }
 
       await updateDoc(doc(db, 'users', user.uid), updateData);
-      
+
       // Update auth display name if username changed
       if (profile.username && user.displayName !== profile.username) {
         // Note: Updating displayName requires re-authentication in Firebase
@@ -151,8 +141,8 @@ export default function ProfilePage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
+      <div className='min-h-screen flex items-center justify-center'>
+        <div className='text-muted-foreground'>Loading...</div>
       </div>
     );
   }
@@ -167,45 +157,47 @@ export default function ProfilePage() {
   const cannotEditPhone = authMethod === 'phone';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className='min-h-screen bg-background'>
       <Navigation onAddClick={() => {}} />
-      
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-card border border-border rounded-2xl p-8">
-          <h1 className="text-3xl font-bold text-foreground mb-8">Profile Settings</h1>
+
+      <main className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+        <div className='bg-card border border-border rounded-2xl p-8'>
+          <h1 className='text-3xl font-bold text-foreground mb-8'>
+            Profile Settings
+          </h1>
 
           {/* Photo Section */}
-          <div className="mb-8">
-            <label className="block text-sm font-medium text-foreground mb-4">
+          <div className='mb-8'>
+            <label className='block text-sm font-medium text-foreground mb-4'>
               Profile Photo
             </label>
-            <div className="flex items-center gap-6">
-              <div className="relative w-24 h-24 rounded-full overflow-hidden bg-muted border-2 border-primary">
+            <div className='flex items-center gap-6'>
+              <div className='relative w-24 h-24 rounded-full overflow-hidden bg-muted border-2 border-primary'>
                 {displayPhoto ? (
                   <Image
                     src={displayPhoto}
-                    alt="Profile"
+                    alt='Profile'
                     fill
-                    className="object-cover"
+                    className='object-cover'
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <User size={40} className="text-muted-foreground" />
+                  <div className='w-full h-full flex items-center justify-center'>
+                    <User size={40} className='text-muted-foreground' />
                   </div>
                 )}
               </div>
               <div>
-                <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg cursor-pointer transition-colors">
+                <label className='inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg cursor-pointer transition-colors'>
                   <Upload size={18} />
                   Upload Photo
                   <input
-                    type="file"
-                    accept="image/*"
+                    type='file'
+                    accept='image/*'
                     onChange={handlePhotoChange}
-                    className="hidden"
+                    className='hidden'
                   />
                 </label>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className='text-xs text-muted-foreground mt-2'>
                   JPG, PNG or GIF. Max size 2MB
                 </p>
               </div>
@@ -213,74 +205,97 @@ export default function ProfilePage() {
           </div>
 
           {/* Username */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-foreground mb-2">
+          <div className='mb-6'>
+            <label className='block text-sm font-medium text-foreground mb-2'>
               Username
             </label>
             <input
-              type="text"
+              type='text'
               value={profile.username || ''}
-              onChange={(e) => setProfile({ ...profile, username: e.target.value })}
-              className="w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all"
-              placeholder="Enter your username"
+              onChange={(e) =>
+                setProfile({ ...profile, username: e.target.value })
+              }
+              className='w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all'
+              placeholder='Enter your username'
             />
           </div>
 
           {/* Bio */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-foreground mb-2">
+          <div className='mb-6'>
+            <label className='block text-sm font-medium text-foreground mb-2'>
               Bio
             </label>
             <textarea
               value={profile.bio || ''}
               onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
               rows={4}
-              className="w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all resize-none"
-              placeholder="Tell us about yourself..."
+              className='w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all resize-none'
+              placeholder='Tell us about yourself...'
             />
           </div>
 
           {/* Email (read-only if used for auth) */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Email {cannotEditEmail && <span className="text-xs text-muted-foreground">(cannot edit)</span>}
+          <div className='mb-6'>
+            <label className='block text-sm font-medium text-foreground mb-2'>
+              Email{' '}
+              {cannotEditEmail && (
+                <span className='text-xs text-muted-foreground'>
+                  (cannot edit)
+                </span>
+              )}
             </label>
             <input
-              type="email"
+              type='email'
               value={profile.email || ''}
-              onChange={cannotEditEmail ? () => {} : (e) => setProfile({ ...profile, email: e.target.value })}
+              onChange={
+                cannotEditEmail
+                  ? () => {}
+                  : (e) => setProfile({ ...profile, email: e.target.value })
+              }
               readOnly={cannotEditEmail}
-              className="w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all read-only:opacity-50 read-only:cursor-not-allowed"
-              placeholder="your@email.com"
+              className='w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all read-only:opacity-50 read-only:cursor-not-allowed'
+              placeholder='your@email.com'
             />
           </div>
 
           {/* Phone Number (read-only if used for auth) */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Phone Number {cannotEditPhone && <span className="text-xs text-muted-foreground">(cannot edit)</span>}
+          <div className='mb-6'>
+            <label className='block text-sm font-medium text-foreground mb-2'>
+              Phone Number{' '}
+              {cannotEditPhone && (
+                <span className='text-xs text-muted-foreground'>
+                  (cannot edit)
+                </span>
+              )}
             </label>
             <input
-              type="tel"
+              type='tel'
               value={profile.phoneNumber || ''}
-              onChange={cannotEditPhone ? () => {} : (e) => setProfile({ ...profile, phoneNumber: e.target.value })}
+              onChange={
+                cannotEditPhone
+                  ? () => {}
+                  : (e) =>
+                      setProfile({ ...profile, phoneNumber: e.target.value })
+              }
               readOnly={cannotEditPhone}
-              className="w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all read-only:opacity-50 read-only:cursor-not-allowed"
-              placeholder="0551234567"
+              className='w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all read-only:opacity-50 read-only:cursor-not-allowed'
+              placeholder='0551234567'
             />
           </div>
 
           {/* Age Range */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-foreground mb-2">
+          <div className='mb-6'>
+            <label className='block text-sm font-medium text-foreground mb-2'>
               Age Range
             </label>
             <select
               value={profile.ageRange || ''}
-              onChange={(e) => setProfile({ ...profile, ageRange: e.target.value })}
-              className="w-full px-4 py-3 bg-secondary text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all"
+              onChange={(e) =>
+                setProfile({ ...profile, ageRange: e.target.value })
+              }
+              className='w-full px-4 py-3 bg-secondary text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all'
             >
-              <option value="">Select age range</option>
+              <option value=''>Select age range</option>
               {AGE_RANGES.map((range) => (
                 <option key={range} value={range}>
                   {range}
@@ -290,16 +305,18 @@ export default function ProfilePage() {
           </div>
 
           {/* Gender */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-foreground mb-2">
+          <div className='mb-6'>
+            <label className='block text-sm font-medium text-foreground mb-2'>
               Gender
             </label>
             <select
               value={profile.gender || ''}
-              onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
-              className="w-full px-4 py-3 bg-secondary text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all"
+              onChange={(e) =>
+                setProfile({ ...profile, gender: e.target.value })
+              }
+              className='w-full px-4 py-3 bg-secondary text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all'
             >
-              <option value="">Select gender</option>
+              <option value=''>Select gender</option>
               {GENDERS.map((gender) => (
                 <option key={gender} value={gender}>
                   {gender}
@@ -309,16 +326,16 @@ export default function ProfilePage() {
           </div>
 
           {/* Race */}
-          <div className="mb-8">
-            <label className="block text-sm font-medium text-foreground mb-2">
+          <div className='mb-8'>
+            <label className='block text-sm font-medium text-foreground mb-2'>
               Race/Ethnicity
             </label>
             <select
               value={profile.race || ''}
               onChange={(e) => setProfile({ ...profile, race: e.target.value })}
-              className="w-full px-4 py-3 bg-secondary text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all"
+              className='w-full px-4 py-3 bg-secondary text-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all'
             >
-              <option value="">Select race/ethnicity</option>
+              <option value=''>Select race/ethnicity</option>
               {RACES.map((race) => (
                 <option key={race} value={race}>
                   {race}
@@ -331,15 +348,15 @@ export default function ProfilePage() {
           <Button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3"
+            className='w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3'
           >
             {saving ? (
-              <span className="flex items-center gap-2">
-                <Save size={20} className="animate-spin" />
+              <span className='flex items-center gap-2'>
+                <Save size={20} className='animate-spin' />
                 Saving...
               </span>
             ) : (
-              <span className="flex items-center gap-2">
+              <span className='flex items-center gap-2'>
                 <Save size={20} />
                 Save Changes
               </span>
@@ -352,4 +369,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

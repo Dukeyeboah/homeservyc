@@ -10,10 +10,10 @@ export function Hero() {
 
       <div className="max-w-4xl mx-auto text-center space-y-6 relative z-10">
         <h1 className="text-5xl md:text-6xl font-medium tracking-tight text-balance text-white">
-          Find trusted home services
+          Find trusted help for your home
         </h1>
         <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
-          Clean, simple, and up to date. Replace static PDFs with living, verified recommendations.
+          Trusted help. Happy homes.
         </p>
       </div>
     </section>

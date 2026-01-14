@@ -110,9 +110,10 @@ export async function getSavedServices(
     const data = doc.data();
     return {
       ...data,
-      savedAt: data.savedAt instanceof Timestamp 
-        ? data.savedAt.toDate() 
-        : new Date(data.savedAt),
+      savedAt:
+        data.savedAt instanceof Timestamp
+          ? data.savedAt.toDate()
+          : new Date(data.savedAt),
     } as SavedService;
   });
 }
@@ -120,7 +121,10 @@ export async function getSavedServices(
 // Submit a recommendation
 export async function submitRecommendation(
   userId: string,
-  recommendation: Omit<Recommendation, 'id' | 'userId' | 'submittedAt' | 'status'>
+  recommendation: Omit<
+    Recommendation,
+    'id' | 'userId' | 'submittedAt' | 'status'
+  >
 ): Promise<void> {
   const recommendationsRef = collection(db, RECOMMENDATIONS_COLLECTION);
   const newRecommendation: Recommendation = {
@@ -135,4 +139,3 @@ export async function submitRecommendation(
     submittedAt: Timestamp.fromDate(newRecommendation.submittedAt),
   });
 }
-

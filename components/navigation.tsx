@@ -46,7 +46,7 @@ export function Navigation({ onAddClick }: { onAddClick: () => void }) {
           {/* Logo */}
           <Link href='/' className='flex-shrink-0'>
             <span className='text-lg md:text-2xl font-medium tracking-tight'>
-              HomeServyc
+              Happy Homes
             </span>
           </Link>
 

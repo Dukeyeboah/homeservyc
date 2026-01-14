@@ -5,16 +5,19 @@
 To deploy the Firestore security rules to production:
 
 1. Install Firebase CLI (if not already installed):
+
    ```bash
    npm install -g firebase-tools
    ```
 
 2. Login to Firebase:
+
    ```bash
    firebase login
    ```
 
 3. Initialize Firebase in your project (if not already done):
+
    ```bash
    firebase init firestore
    ```
@@ -59,4 +62,3 @@ To grant admin access to users (for managing recommendations):
 3. Add: `{ "admin": true }`
 
 Or use Firebase Admin SDK to set custom claims programmatically.
-

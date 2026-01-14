@@ -7,10 +7,9 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
           {/* Brand Section */}
           <div className="space-y-4">
-            <h3 className="text-xl font-medium">HomeServys</h3>
+            <h3 className="text-xl font-medium">Happy Homes</h3>
             <p className="text-muted-foreground leading-relaxed max-w-sm">
-              A living directory of trusted household and personal services in Ghana. Community-powered, always
-              up-to-date, and transparent.
+              The Home Help Network. Find trusted help for your home. Trusted help. Happy homes.
             </p>
           </div>
 
@@ -62,7 +61,7 @@ export function Footer() {
         {/* Divider */}
         <div className="border-t border-border pt-8">
           <p className="text-xs text-muted-foreground text-center">
-            © 2026 HomeServys. Replacing static PDFs with living, trusted data.
+            © 2026 Happy Homes - The Home Help Network. Find trusted help for your home.
           </p>
         </div>
       </div>

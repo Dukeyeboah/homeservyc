@@ -1,6 +1,12 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
 import { User } from 'firebase/auth';
 import { onAuthChange } from '@/lib/firebase-auth';
 
@@ -39,4 +45,3 @@ export function useAuth() {
   }
   return context;
 }
-
