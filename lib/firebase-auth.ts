@@ -40,8 +40,9 @@ export async function createRecaptchaVerifier(containerId: string = 'recaptcha-c
   if (recaptchaVerifierInstance) {
     try {
       recaptchaVerifierInstance.clear();
+      console.log('Cleared existing reCAPTCHA verifier');
     } catch (e) {
-      // Ignore errors when clearing
+      console.warn('Error clearing existing verifier:', e);
     }
     recaptchaVerifierInstance = null;
   }
@@ -55,29 +56,29 @@ export async function createRecaptchaVerifier(containerId: string = 'recaptcha-c
   // Clear container but keep it in DOM
   container.innerHTML = '';
 
-  // For invisible reCAPTCHA, the container must be:
-  // 1. Visible (at least 1px x 1px)
-  // 2. In the viewport
-  // 3. Not display: none
-  // We'll position it in the bottom-right corner, very small
-  container.style.position = 'fixed';
-  container.style.bottom = '10px';
-  container.style.right = '10px';
-  container.style.width = '1px';
-  container.style.height = '1px';
-  container.style.opacity = '0';
-  container.style.pointerEvents = 'none';
-  container.style.zIndex = '9999';
-  container.style.overflow = 'hidden';
-  container.style.visibility = 'visible';
-  container.style.display = 'block';
+  // For visible reCAPTCHA, container should be visible and in normal flow
+  // Reset any previous styling
+  container.style.position = '';
+  container.style.bottom = '';
+  container.style.right = '';
+  container.style.width = '';
+  container.style.height = '';
+  container.style.opacity = '';
+  container.style.pointerEvents = '';
+  container.style.zIndex = '';
+  container.style.overflow = '';
+  container.style.visibility = '';
+  container.style.display = '';
 
-  // Create new verifier with invisible reCAPTCHA
+  console.log('Creating visible reCAPTCHA verifier...');
+
+  // Create new verifier with visible reCAPTCHA widget (normal size)
+  // Following Firebase docs exactly
   recaptchaVerifierInstance = new RecaptchaVerifier(auth, containerId, {
-    size: 'invisible',
+    size: 'normal',
     callback: (response: string) => {
-      // reCAPTCHA solved - this is called automatically when verification succeeds
-      console.log('reCAPTCHA verified successfully');
+      // reCAPTCHA solved - user completed the challenge
+      console.log('reCAPTCHA solved - token received');
     },
     'expired-callback': () => {
       // reCAPTCHA expired
@@ -93,7 +94,7 @@ export async function createRecaptchaVerifier(containerId: string = 'recaptcha-c
     },
     'error-callback': (error: any) => {
       // reCAPTCHA error
-      console.error('reCAPTCHA error:', error);
+      console.error('reCAPTCHA error callback:', error);
       if (recaptchaVerifierInstance) {
         try {
           recaptchaVerifierInstance.clear();
@@ -105,14 +106,13 @@ export async function createRecaptchaVerifier(containerId: string = 'recaptcha-c
     },
   });
 
-  // For invisible reCAPTCHA, we MUST call .render() to initialize it
-  // This will set up the reCAPTCHA but it won't show a widget
+  // Pre-render the reCAPTCHA widget (optional but recommended)
   try {
-    await recaptchaVerifierInstance.render();
-    console.log('reCAPTCHA rendered successfully');
+    console.log('Rendering reCAPTCHA widget...');
+    const widgetId = await recaptchaVerifierInstance.render();
+    console.log('reCAPTCHA widget rendered with ID:', widgetId);
   } catch (error: any) {
     console.error('Error rendering reCAPTCHA:', error);
-    // Clean up on error
     recaptchaVerifierInstance = null;
     throw new Error('Failed to initialize reCAPTCHA. Please refresh and try again.');
   }

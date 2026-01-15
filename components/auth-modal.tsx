@@ -105,19 +105,26 @@ export function AuthModal({ onClose, initialMode = 'signin' }: AuthModalProps) {
         // Wait for container to be fully in DOM
         await new Promise((resolve) => setTimeout(resolve, 300));
 
+        console.log('Creating reCAPTCHA verifier...');
+
         // Create and render recaptcha verifier - must be done after container is in DOM
-        // This will initialize invisible reCAPTCHA
+        // Following Firebase docs: create verifier, render it, then use it
         const recaptchaVerifier = await createRecaptchaVerifier(
           'recaptcha-container'
         );
 
-        // Wait a bit more to ensure reCAPTCHA is fully ready
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        console.log('reCAPTCHA verifier created and rendered');
+        console.log('Phone number:', formattedPhone);
+        console.log('Calling signInWithPhoneNumber...');
 
+        // reCAPTCHA is already rendered - user will need to complete the challenge
+        // before SMS is sent
         const confirmation = await signInWithPhone(
           formattedPhone,
           recaptchaVerifier
         );
+
+        console.log('Phone authentication initiated successfully');
         setConfirmationResult(confirmation);
       } else {
         // Step 2: Verify code
@@ -137,7 +144,9 @@ export function AuthModal({ onClose, initialMode = 'signin' }: AuthModalProps) {
         setConfirmationResult(null);
         setVerificationCode('');
       } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many attempts. Please try again later.');
+        setError(
+          'Too many authentication attempts. Please wait a few minutes before trying again. This is a security measure to prevent abuse.'
+        );
       } else if (err.code === 'auth/quota-exceeded') {
         setError('SMS quota exceeded. Please contact support.');
       } else if (err.code === 'auth/operation-not-allowed') {
@@ -150,7 +159,11 @@ export function AuthModal({ onClose, initialMode = 'signin' }: AuthModalProps) {
         );
       } else if (err.code === 'auth/invalid-app-credential') {
         setError(
-          'reCAPTCHA verification failed. Please refresh the page and try again. If the problem persists, check your Firebase configuration.'
+          'reCAPTCHA verification failed. This usually means:\n' +
+            '1. Your domain (localhost) may not be authorized in Firebase Console\n' +
+            '2. There may be a reCAPTCHA configuration issue\n' +
+            '3. Try refreshing the page or clearing browser cache\n\n' +
+            'To fix: Go to Firebase Console → Authentication → Settings → Authorized domains and ensure "localhost" is listed.'
         );
       } else if (err.message?.includes('reCAPTCHA')) {
         setError(
@@ -309,23 +322,10 @@ export function AuthModal({ onClose, initialMode = 'signin' }: AuthModalProps) {
                   >
                     {loading ? 'Sending code...' : 'Send Verification Code'}
                   </Button>
-                  {/* reCAPTCHA container - must exist in DOM before verifier is created */}
-                  {/* Positioned off-screen but visible (1px) for invisible reCAPTCHA initialization */}
+                  {/* reCAPTCHA container - visible widget will render here */}
                   <div
                     id='recaptcha-container'
-                    style={{
-                      position: 'fixed',
-                      bottom: '10px',
-                      right: '10px',
-                      width: '1px',
-                      height: '1px',
-                      opacity: 0,
-                      pointerEvents: 'none',
-                      zIndex: 9999,
-                      overflow: 'hidden',
-                      visibility: 'visible',
-                      display: 'block',
-                    }}
+                    className='flex justify-center my-4'
                   ></div>
                 </>
               ) : (

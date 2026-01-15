@@ -100,13 +100,17 @@ For **production**, you need to add your domain:
 
 ## Step 3: How reCAPTCHA Works
 
-Firebase uses **reCAPTCHA v3 (invisible)** for phone authentication:
-- ✅ **No user interaction needed** - it runs automatically in the background
-- ✅ **No visible challenge** - users won't see a checkbox or puzzle
-- ✅ **Automatic** - Firebase handles everything, you don't need to configure it
+Firebase uses **reCAPTCHA Enterprise** for phone authentication:
+- ✅ **Automatic** - Firebase handles everything, you don't need to configure it manually
+- ✅ **Enterprise Integration** - Firebase automatically creates and manages reCAPTCHA Enterprise keys
+- ✅ **No manual setup needed** - You don't need to create reCAPTCHA keys in Google Cloud Console
 - ✅ **Secure** - Google's reCAPTCHA protects against bots and abuse
 
-**Note:** Firebase automatically generates and uses a reCAPTCHA site key - you don't need to configure anything manually.
+**Important:** 
+- Firebase automatically generates and uses reCAPTCHA Enterprise keys - **you don't need to manually create keys in Google Cloud Console**
+- If you see "Configured platform site keys" in Firebase Console → Authentication → reCAPTCHA, those are automatically created by Firebase
+- **Do NOT manually add reCAPTCHA script tags** - Firebase SDK handles everything
+- The `RecaptchaVerifier` in your code uses Firebase's automatic reCAPTCHA Enterprise integration
 
 ## Step 4: Test Phone Authentication
 
@@ -190,6 +194,23 @@ For other countries, use the full international format:
 - Firebase has daily SMS limits for free tier
 - Check your quota in Firebase Console → Usage and billing
 - If you've exceeded the free tier, you'll be charged per SMS
+
+### Error: "Too many requests" (auth/too-many-requests)
+
+**This error means you've made too many phone authentication requests in a short period.**
+
+**What this means:**
+- Firebase rate-limits phone authentication to prevent abuse
+- This is a temporary restriction that will lift after a few minutes
+- The exact time varies but is typically 5-15 minutes
+
+**Solutions:**
+1. **Wait and retry:** Wait 5-15 minutes before trying again
+2. **Use a different authentication method:** Try email/password or Google sign-in instead
+3. **Check if you're in a development environment:** Rate limits are stricter in production
+4. **Contact Firebase support:** If this persists for hours, there may be an account issue
+
+**Note:** This is a security feature and cannot be disabled. It protects against spam and abuse.
 
 ### Error: "Invalid app credential" (auth/invalid-app-credential) or "reCAPTCHA verification failed"
 

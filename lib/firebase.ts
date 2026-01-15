@@ -20,6 +20,15 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
   );
 }
 
+// Log Firebase config (without sensitive data) for debugging
+if (typeof window !== 'undefined') {
+  console.log('Firebase initialized:', {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    hasApiKey: !!firebaseConfig.apiKey,
+  });
+}
+
 // Initialize Firebase
 const app =
   getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
