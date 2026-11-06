@@ -70,3 +70,10 @@ Start with a small, manually reviewed shortlist. Test paid concierge introductio
 - Bottom CTA now reads “Let’s get started”. Three new glossy vector icons extend the existing category icon treatment for discovery, profiles, and connection.
 - IntersectionObserver provides one-shot upward/fade entrances for hero, category section, welcome cards, and provider cards. No animation dependency; content stays visible without JavaScript, with reduced motion respected globally. Observers clean up on route changes.
 - Production build passed. Desktop icons and reveal activation verified at 1280px; welcome layout fits at 320px with no horizontal overflow.
+
+## Compact directory and Google-first authentication
+- Categories now use one horizontal strip with previous/next controls, native touch scrolling, and left/right keyboard navigation. Removed View results, directory intro copy, and Find home help from the navigation; the action is now Add.
+- Reduced spacing above search while preserving the MEET YOUR NEXT HELPING HAND label.
+- Log in modal presents a blue Google button with the multicolor G first. Email and phone forms start collapsed and toggle independently (one open at a time).
+- Email password has a visibility toggle. Account creation adds confirmation and rejects mismatches before calling authentication; existing-account login retains one password field.
+- Verified 320px and 1280px layouts, strip scrolling, keyboard focus, visibility toggles, mismatch rejection, matching-field validity, phone collapse, Escape and outside dismissal. Build, TypeScript, and 5 search/privacy tests passed. Real authentication remains disabled in local preview.

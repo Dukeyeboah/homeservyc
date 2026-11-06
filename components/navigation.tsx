@@ -11,9 +11,9 @@ export function Navigation({ onAddClick }: { onAddClick: () => void }) {
   return <>
     <nav className="site-nav" aria-label="Main navigation"><div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center gap-3 h-20">
       <Link href="/" aria-label="HomeServyc home" className="brand-link"><img className="brand-wordmark" src="/design/homeservyc-logo-proposal.png" alt="HomeServyc"/><img className="brand-symbol" src="/icon.svg" alt=""/></Link>
-      <div className="flex items-center gap-2 sm:gap-6"><Link href="/directory" className="text-xs sm:text-sm text-slate-600 whitespace-nowrap">Find home help</Link>
-        <button onClick={onAddClick} className="nav-add"><Plus size={16}/><span className="hidden sm:inline">Recommend someone</span><span className="sm:hidden">Add</span></button>
-        {isAuthenticated ? <UserMenu/> : <button onClick={() => setShowAuthModal(true)} className="flex items-center gap-2 text-sm px-2 py-2 rounded-full"><LogIn size={17}/><span className="hidden sm:inline">Sign in</span><span className="sr-only sm:hidden">Sign in</span></button>}
+      <div className="flex items-center gap-2 sm:gap-6">
+        <button onClick={onAddClick} className="nav-add"><Plus size={16}/><span>Add</span></button>
+        {isAuthenticated ? <UserMenu/> : <button onClick={() => setShowAuthModal(true)} className="flex items-center gap-2 text-sm px-2 py-2 rounded-full"><LogIn size={17}/><span className="hidden sm:inline">Log in</span><span className="sr-only sm:hidden">Log in</span></button>}
       </div>
     </div></nav>
     {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} initialMode="signin"/>}

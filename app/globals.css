@@ -241,3 +241,10 @@ button:focus-visible, a:focus-visible { outline: 3px solid #17796b; outline-offs
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* Categories scroll within their strip, never the page. */
+.category-choices { display:flex; overflow-x:auto; overflow-y:hidden; gap:12px; scroll-snap-type:x proximity; overscroll-behavior-x:contain; max-width:100%; padding:8px 5px 14px; }
+.category-choice { flex:0 0 132px; width:132px; scroll-snap-align:start; }
+.category-scroll-button { width:32px; height:32px; display:grid; place-items:center; border:1px solid #d8e2dc; border-radius:50%; background:white; }
+.category-scroll-button:hover { background:#eef5ed; }
+@media(max-width:639px) { .category-choice { flex-basis:94px; width:94px; }.category-choices { gap:8px; } }

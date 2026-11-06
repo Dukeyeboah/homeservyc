@@ -63,7 +63,7 @@ export function AddRecommendationModal({
     e.preventDefault();
 
     if (!isAuthenticated || !user) {
-      alert('Please sign in to submit a recommendation.');
+      alert('Please log in to submit a recommendation.');
       return;
     }
 
@@ -403,7 +403,7 @@ export function AddRecommendationModal({
             {submitting
               ? 'Submitting...'
               : !isAuthenticated
-              ? 'Please Sign In'
+              ? 'Please Log in'
               : 'Submit Recommendation'}
           </button>
 

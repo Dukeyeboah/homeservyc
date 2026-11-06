@@ -19,12 +19,10 @@ export function ServiceGrid({ onServiceClick, filters }: ServiceGridProps) {
   const control = 'w-full rounded-xl border border-border bg-card px-4 py-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 
   return (
-    <section id="services" className="scroll-mt-24 px-4 py-12 md:py-16">
+    <section id="services" className="scroll-mt-24 px-4 pt-5 pb-12 md:pt-6 md:pb-16">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">MEET YOUR NEXT HELPING HAND</p>
-          <h2 className="text-3xl font-medium tracking-tight">Good people. Everyday help.</h2>
-          <p className="text-muted-foreground mt-3 max-w-2xl">Browse existing recommendations. Profiles and availability have not been independently checked.</p>
+        <div className="mb-4">
+          <h1 className="text-xs uppercase tracking-widest text-muted-foreground">MEET YOUR NEXT HELPING HAND</h1>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] gap-4 mb-5">
           <label className="text-sm space-y-2"><span>Search</span><input type="search" value={filters.search} onChange={(e) => update({ search: e.target.value })} placeholder="Role, location or name" className={control} /></label>

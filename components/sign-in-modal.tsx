@@ -20,11 +20,11 @@ export function SignInModal({ onClose, onSignIn }: SignInModalProps) {
 
   return (
     <>
-      <ModalFrame title="Sign in required" onClose={onClose}>
+      <ModalFrame title="Log in required" onClose={onClose}>
           {/* Close Button */}
           <button
             onClick={onClose}
-            aria-label="Close sign in prompt"
+            aria-label="Close log in prompt"
             className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors"
           >
             <X size={20} className="text-foreground" />
@@ -34,10 +34,10 @@ export function SignInModal({ onClose, onSignIn }: SignInModalProps) {
           <div className="p-8 space-y-6">
             <div>
               <h2 className="text-2xl font-semibold text-foreground mb-2">
-                Sign In Required
+                Log in Required
               </h2>
               <p className="text-muted-foreground">
-                Sign in to save profiles and submit recommendations. Contact introductions are not available yet.
+                Log in to save profiles and submit recommendations. Contact introductions are not available yet.
               </p>
             </div>
 
@@ -57,11 +57,11 @@ export function SignInModal({ onClose, onSignIn }: SignInModalProps) {
                   onClick={handleSignInClick}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  Sign In
+                  Log in
                 </Button>
                 <Button
                   onClick={onClose}
-            aria-label="Close sign in prompt"
+            aria-label="Close log in prompt"
                   variant="outline"
                   className="w-full"
                 >

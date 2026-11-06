@@ -42,7 +42,7 @@ export function ServiceModal({ service, onClose }: ServiceModalProps) {
           <h3 className="flex gap-2 items-center font-medium mb-2"><LockKeyhole size={18} />Connect with {service.name}</h3>
           <p className="text-sm text-muted-foreground">{isAuthenticated ? 'You’re signed in. You can save this profile while we prepare private introductions.' : 'Want to connect? Start by signing in. You can save this profile and keep your shortlist together.'}</p>
           <p className="text-sm text-muted-foreground mt-3">Private introductions are coming soon. Connecting will require an account and the provider’s agreement before contact details are shared.</p>
-          {!isAuthenticated && <button onClick={() => setShowAuth(true)} className="mt-4 rounded-full bg-primary text-primary-foreground px-5 py-3 text-sm font-medium">Sign in to get started</button>}
+          {!isAuthenticated && <button onClick={() => setShowAuth(true)} className="mt-4 rounded-full bg-primary text-primary-foreground px-5 py-3 text-sm font-medium">Log in to get started</button>}
         </section>
         <DialogClose className="rounded-xl bg-primary text-primary-foreground py-3 text-sm font-medium">Back to browsing</DialogClose>
       </DialogContent>
