@@ -77,3 +77,36 @@ Start with a small, manually reviewed shortlist. Test paid concierge introductio
 - Log in modal presents a blue Google button with the multicolor G first. Email and phone forms start collapsed and toggle independently (one open at a time).
 - Email password has a visibility toggle. Account creation adds confirmation and rejects mismatches before calling authentication; existing-account login retains one password field.
 - Verified 320px and 1280px layouts, strip scrolling, keyboard focus, visibility toggles, mismatch rejection, matching-field validity, phone collapse, Escape and outside dismissal. Build, TypeScript, and 5 search/privacy tests passed. Real authentication remains disabled in local preview.
+
+## Add-personnel form refinement (local only)
+- Inspected all three supplied Library screenshots, materialized under ../references-form/reference-{0,1,2}.png.
+- Native radio group replaces large recommender/service-personnel buttons; role still controls the recommender phone field.
+- Circular photo preview sits beside labeled name/location fields, with keyboard-accessible chooser and remove control. JPG/PNG/WebP type and 10 MB size checks added. Existing photo preview remains local only; persistent photo upload is not implemented.
+- Service categories are compact native checkbox chips in a bordered fieldset with selection count; multi-select behavior preserved.
+- Verified actual desktop (1280px) and mobile (320px and natural 390px) rendering, photo selection/removal, radio arrow keys, category Space toggle, and Escape focus return. At 320px the document width was 320px and dialog client/scroll width both 288px.
+- TypeScript, production build and 5 search/privacy tests passed. No submission, push, deployment or production changes.
+
+## Form alignment, calling codes and category limit (local only)
+- Photo and Full name label tops align exactly; Location input bottom aligns with circular photo holder. Browser geometry differences were 0px at 1280px and 320px. At 320px document width was 320px; dialog client and scroll widths both 288px.
+- Both contact sections have explicit country/calling-code selectors with no country preselected. Help distinguishes country calling codes from local area codes. libphonenumber-js/max validates numbering metadata, preserves country-specific significant zeroes, rejects mismatches and extensions, and normalizes submitted numbers to E.164. Optional recommender number remains optional unless marked WhatsApp or partially filled.
+- Category selection limited to 8; visible count and accessible limit feedback; selected items can always be removed, and replacements enabled afterward. Form submit also guards category count and phone validity.
+- Verified browser cap/deselection/replacement, normalizing a Ghana national number, mismatched international-number feedback, phone layout, native controls, and Escape focus return. Production build and TypeScript passed; 9 automated tests passed (5 existing search/privacy and 4 new validation tests).
+- These checks validate syntax/numbering plans, not number ownership, reachability or WhatsApp registration. Backend validation and consent verification remain required before production contact workflows. No actual submission, push, deployment, API messages or production changes.
+
+### Suggested additional fields (not implemented)
+Essential for a useful submission: provider consent to a listing/contact request, service area (town/neighborhood rather than street address), one to eight services, work arrangement, reliable contact channel, and an accurate distinction between self-submission and recommendation. Before publishing, confirm phone ownership and review provider permission; make provider visibility choices explicit.
+Optional: languages, years of relevant experience, availability date/days and last-confirmed timestamp, live-in/live-out or travel radius, short service description, fee range with currency and basis, qualifications relevant to the chosen role, and photo with consent. For recommenders, ask how/when they worked with the provider rather than assuming a verified review.
+Sensitive: do not request government ID numbers/images, exact home address, birth date, health information, banking details, or third-party reference contacts in the general form. If a later verification process needs evidence, collect it privately with clear purpose, access and retention controls; never put it in public profiles. Provider contact numbers should remain private until authorized sharing.
+
+## Compact mobile directory controls (local only)
+- Moved the helping-hand heading below search/filters, directly above results metadata. Search uses placeholder text with an accessible name and no visible label.
+- Mobile category prompt stays on one line; desktop arrows become interactive, scroll-synchronized dots on mobile.
+- Mobile filter icon toggles work arrangement and sort side by side beneath search, with an active-filter indicator. Desktop controls remain visible.
+- TypeScript and all 5 existing search/privacy tests passed. Browser checks at 320px and 390px showed no page overflow; dot navigation, arrangement filtering (41 part-time profiles), reset (105 profiles), and filter expansion passed. No publication or production changes.
+
+## Desktop directory controls
+- Category scrolling uses clickable, scroll-synchronized page dots at every viewport size; desktop arrow controls removed. Reduced-motion preference and keyboard category navigation preserved.
+- Filters toggle reveals Work arrangement and Sort by on desktop and mobile, preserving selections while collapsed and showing an active-filter indicator.
+- Search includes a decorative magnifying glass and role/location/name placeholder; result count uses 12px italic type.
+- Verified desktop dot navigation, filter visibility and retained selections, combined search/filtering, and mobile layout at 320px without document overflow. Production build (including TypeScript) and all 9 search/privacy/phone/category tests passed.
+- This commit also includes the previously reviewed local personnel-form refinements and compact mobile controls described above. No deployment or live contact workflow was performed.

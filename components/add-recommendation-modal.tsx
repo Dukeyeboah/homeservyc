@@ -3,11 +3,15 @@
 import type React from 'react';
 
 import { ModalFrame } from './modal-frame';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { X, Upload } from 'lucide-react';
 import { getAllCategories } from '@/lib/services';
 import { useAuth } from '@/contexts/auth-context';
 import { submitRecommendation } from '@/lib/firestore';
+
+import type { CountryCode } from 'libphonenumber-js';
+import { ContactNumberField } from './contact-number-field';
+import { MAX_SERVICE_CATEGORIES, toggleServiceCategory, validateContactNumber } from '@/lib/recommendation-validation';
 
 const categories = getAllCategories();
 
@@ -27,26 +31,40 @@ export function AddRecommendationModal({
     workType: 'Full-time' as 'Full-time' | 'Part-time',
     notes: '',
     location: '',
+    servicePersonnelCountry: '' as CountryCode | '',
     servicePersonnelPhone: '',
     servicePersonnelPhoneWhatsApp: false,
+    recommenderCountry: '' as CountryCode | '',
     recommenderPhone: '',
     recommenderPhoneWhatsApp: false,
   });
+  const photoInput = useRef<HTMLInputElement>(null);
+  const [photoError, setPhotoError] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
+  const [categoryNotice, setCategoryNotice] = useState('');
   const handleCategoryToggle = (category: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(category)
-        ? prev.categories.filter((c) => c !== category)
-        : [...prev.categories, category],
-    }));
+    if (!formData.categories.includes(category) && formData.categories.length >= MAX_SERVICE_CATEGORIES) {
+      setCategoryNotice('Eight-category limit reached. Deselect a category before adding another.');
+      return;
+    }
+    setCategoryNotice('');
+    setFormData(prev => ({ ...prev, categories: toggleServiceCategory(prev.categories, category) }));
   };
+  const providerNumber = validateContactNumber(formData.servicePersonnelCountry, formData.servicePersonnelPhone);
+  const recommenderNumber = validateContactNumber(formData.recommenderCountry, formData.recommenderPhone, formData.recommenderPhoneWhatsApp);
+  const [formError, setFormError] = useState('');
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) {
+        setPhotoError('Choose a JPG, PNG or WebP image up to 10 MB.');
+        e.target.value = '';
+        return;
+      }
+      setPhotoError('');
       setPhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -62,6 +80,12 @@ export function AddRecommendationModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setFormError('');
+    if (formData.categories.length < 1 || formData.categories.length > MAX_SERVICE_CATEGORIES || providerNumber.error || (userType === 'recommender' && recommenderNumber.error)) {
+      setFormError(providerNumber.error || (userType === 'recommender' && recommenderNumber.error) || 'Choose between one and eight categories.');
+      return;
+    }
+
     if (!isAuthenticated || !user) {
       alert('Please log in to submit a recommendation.');
       return;
@@ -76,10 +100,10 @@ export function AddRecommendationModal({
         workType: formData.workType,
         description: formData.notes,
         location: formData.location,
-        phoneNumber: formData.servicePersonnelPhone,
+        phoneNumber: providerNumber.number!,
         phoneNumberWhatsApp: formData.servicePersonnelPhoneWhatsApp,
         recommenderPhone:
-          userType === 'recommender' ? formData.recommenderPhone : undefined,
+          userType === 'recommender' ? recommenderNumber.number : undefined,
         recommenderPhoneWhatsApp:
           userType === 'recommender'
             ? formData.recommenderPhoneWhatsApp
@@ -113,9 +137,9 @@ export function AddRecommendationModal({
         </button>
 
         {/* Content */}
-        <form onSubmit={handleSubmit} className='p-8 space-y-6'>
+        <form onSubmit={handleSubmit} className='recommendation-form p-5 sm:p-8 space-y-6'>
           <div>
-            <h2 className='text-3xl font-medium text-foreground mb-2'>
+            <h2 className='text-2xl sm:text-3xl font-medium text-foreground mb-2 pr-7'>
               Add a Recommendation
             </h2>
             <p className='text-muted-foreground'>
@@ -123,149 +147,40 @@ export function AddRecommendationModal({
             </p>
           </div>
 
-          {/* User Type Radio */}
-          <div>
-            <label className='block text-sm font-medium text-foreground mb-3'>
-              Are you a recommender or the service personnel?
-            </label>
-            <div className='flex gap-3'>
-              <button
-                type='button'
-                onClick={() => setUserType('recommender')}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
-                  userType === 'recommender'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-foreground hover:bg-muted border border-border'
-                }`}
-              >
-                Recommender
+          <fieldset className="min-w-0">
+            <legend className="text-sm font-medium mb-3">Are you a recommender or the service personnel?</legend>
+            <div className="flex flex-wrap gap-x-6 gap-y-3">
+              {([['recommender', 'Recommender'], ['service-personnel', 'Service personnel']] as const).map(([value, label]) => <label key={value} className="inline-flex items-center gap-2.5 text-sm cursor-pointer min-h-10">
+                <input type="radio" name="recommendation-user-type" value={value} checked={userType === value} onChange={() => setUserType(value)} className="size-4 accent-primary"/>{label}
+              </label>)}
+            </div>
+          </fieldset>
+
+          <section aria-label="Personal details" className="person-details">
+            <div className="person-photo-section">
+              <span className="text-sm font-medium">Photo</span>
+              <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoChange} className="hidden" tabIndex={-1} aria-label="Choose profile photo" id="photo-input"/>
+              <button type="button" onClick={() => photoInput.current?.click()} className="person-photo" aria-label={photoPreview ? 'Change profile photo' : 'Choose profile photo'} aria-describedby="photo-help">
+                {photoPreview ? <img src={photoPreview} alt="Selected profile photo preview"/> : <span className="flex flex-col items-center gap-2"><Upload size={25} aria-hidden="true"/><span className="text-xs">Add photo</span></span>}
               </button>
-              <button
-                type='button'
-                onClick={() => setUserType('service-personnel')}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
-                  userType === 'service-personnel'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-foreground hover:bg-muted border border-border'
-                }`}
-              >
-                Service Personnel
-              </button>
+              {photoPreview && <button type="button" onClick={() => { setPhotoPreview(null); setPhotoFile(null); setPhotoError(''); if (photoInput.current) photoInput.current.value = ''; }} className="text-xs underline underline-offset-4">Remove photo</button>}
             </div>
-          </div>
-
-          {/* Full Name */}
-          <div>
-            <label className='block text-sm font-medium text-foreground mb-2'>
-              Full Name
-            </label>
-            <input
-              type='text'
-              required
-              value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
-              className='w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all'
-              placeholder='John Doe'
-            />
-          </div>
-
-          {/* Location */}
-          <div>
-            <label className='block text-sm font-medium text-foreground mb-2'>
-              Location / Area
-            </label>
-            <input
-              type='text'
-              value={formData.location}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, location: e.target.value }))
-              }
-              className='w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all'
-              placeholder='e.g., Accra, Osu'
-            />
-          </div>
-
-          {/* Photo Upload */}
-          <div>
-            <label className='block text-sm font-medium text-foreground mb-3'>
-              Photo
-            </label>
-            <div className='relative'>
-              <input
-                type='file'
-                accept='image/*'
-                onChange={handlePhotoChange}
-                className='hidden'
-                id='photo-input'
-              />
-              <label
-                htmlFor='photo-input'
-                className='block w-full px-4 py-8 bg-secondary border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted transition-colors text-center'
-              >
-                {photoPreview ? (
-                  <div className='flex items-center justify-center gap-4'>
-                    <img
-                      src={photoPreview || '/placeholder.svg'}
-                      alt='Preview'
-                      className='w-16 h-16 rounded object-cover'
-                    />
-                    <div>
-                      <Upload
-                        size={24}
-                        className='text-muted-foreground mb-2'
-                      />
-                      <p className='text-sm text-muted-foreground'>
-                        Click to change photo
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <Upload
-                      size={24}
-                      className='mx-auto text-muted-foreground mb-2'
-                    />
-                    <p className='text-sm font-medium text-foreground'>
-                      Upload a photo
-                    </p>
-                    <p className='text-xs text-muted-foreground mt-1'>
-                      JPG, PNG up to 10MB
-                    </p>
-                  </div>
-                )}
-              </label>
+            <div className="person-fields">
+              <div><label htmlFor="person-name" className="block text-sm font-medium mb-2">Full name</label><input id="person-name" type="text" autoComplete="name" required value={formData.name} onChange={e => setFormData(prev => ({...prev, name:e.target.value}))} placeholder="John Doe" className="person-input"/></div>
+              <div><label htmlFor="person-location" className="block text-sm font-medium mb-2">Location / Area</label><input id="person-location" type="text" value={formData.location} onChange={e => setFormData(prev => ({...prev, location:e.target.value}))} placeholder="e.g., Accra, Osu" className="person-input"/></div>
             </div>
-          </div>
+            <p id="photo-help" className="person-photo-help text-xs text-muted-foreground">JPG, PNG or WebP · Up to 10 MB · Preview only for now</p>
+            {photoError && <p role="alert" className="person-photo-help text-xs text-destructive">{photoError}</p>}
+          </section>
 
-          {/* Service Categories */}
-          <div>
-            <label className='block text-sm font-medium text-foreground mb-3'>
-              Service Categories (select one or more)
-            </label>
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  type='button'
-                  onClick={() => handleCategoryToggle(category)}
-                  className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors text-left ${
-                    formData.categories.includes(category)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-foreground hover:bg-muted border border-border'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
+          <fieldset className="service-options min-w-0">
+            <legend className="text-sm font-medium px-1">Service categories</legend>
+            <div className="flex justify-between items-center gap-2 mb-3"><p className="text-xs text-muted-foreground">Choose up to eight</p><span className="text-xs text-muted-foreground" aria-live="polite">{formData.categories.length} / {MAX_SERVICE_CATEGORIES} selected</span></div>
+            <div className="service-option-chips">
+              {categories.map(category => <label key={category} className="service-option" data-selected={formData.categories.includes(category)}><input type="checkbox" checked={formData.categories.includes(category)} aria-describedby="category-limit" aria-disabled={!formData.categories.includes(category) && formData.categories.length >= MAX_SERVICE_CATEGORIES} onChange={() => handleCategoryToggle(category)} className="size-3.5 shrink-0 accent-primary"/><span>{category}</span></label>)}
             </div>
-            {formData.categories.length === 0 && (
-              <p className='text-xs text-destructive mt-2'>
-                Please select at least one category
-              </p>
-            )}
-          </div>
+            <p id="category-limit" role="status" className="text-xs text-muted-foreground mt-3">{categoryNotice || (formData.categories.length === MAX_SERVICE_CATEGORIES ? "Eight selected. Deselect one to choose another." : "Select between one and eight categories.")}</p>
+          </fieldset>
 
           {/* Work Type */}
           <div>
@@ -295,25 +210,9 @@ export function AddRecommendationModal({
             </div>
           </div>
 
-          {/* Service Personnel Phone Number */}
-          <div>
-            <label className='block text-sm font-medium text-foreground mb-2'>
-              Service Personnel Phone Number
-            </label>
-            <div className='space-y-2'>
-              <input
-                type='tel'
-                required
-                value={formData.servicePersonnelPhone}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    servicePersonnelPhone: e.target.value,
-                  }))
-                }
-                className='w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all'
-                placeholder='e.g., 0241234567'
-              />
+          <div className="space-y-3">
+            <ContactNumberField id="provider-contact" title="Service personnel phone number" required country={formData.servicePersonnelCountry} value={formData.servicePersonnelPhone} onCountryChange={country => setFormData(prev=>({...prev,servicePersonnelCountry:country}))} onChange={value=>setFormData(prev=>({...prev,servicePersonnelPhone:value}))}/>
+            <div className="space-y-2">
               <label className='flex items-center gap-2 cursor-pointer'>
                 <input
                   type='checkbox'
@@ -333,25 +232,10 @@ export function AddRecommendationModal({
             </div>
           </div>
 
-          {/* Recommender Phone Number (only if user is recommender) */}
           {userType === 'recommender' && (
-            <div>
-              <label className='block text-sm font-medium text-foreground mb-2'>
-                Your Phone Number (Recommender)
-              </label>
-              <div className='space-y-2'>
-                <input
-                  type='tel'
-                  value={formData.recommenderPhone}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      recommenderPhone: e.target.value,
-                    }))
-                  }
-                  className='w-full px-4 py-3 bg-secondary text-foreground placeholder-muted-foreground rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-accent transition-all'
-                  placeholder='e.g., 0241234567'
-                />
+            <div className="space-y-3">
+              <ContactNumberField id="recommender-contact" title="Your phone number" required={formData.recommenderPhoneWhatsApp} country={formData.recommenderCountry} value={formData.recommenderPhone} onCountryChange={country=>setFormData(prev=>({...prev,recommenderCountry:country}))} onChange={value=>setFormData(prev=>({...prev,recommenderPhone:value}))}/>
+              <div className="space-y-2">
                 <label className='flex items-center gap-2 cursor-pointer'>
                   <input
                     type='checkbox'
@@ -388,13 +272,16 @@ export function AddRecommendationModal({
             />
           </div>
 
+          {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
           {/* Submit Button */}
           <button
             type='submit'
             disabled={
               !formData.name ||
               formData.categories.length === 0 ||
-              !formData.servicePersonnelPhone ||
+              !!providerNumber.error ||
+              (userType === 'recommender' && !!recommenderNumber.error) ||
+              formData.categories.length > MAX_SERVICE_CATEGORIES ||
               submitting ||
               !isAuthenticated
             }
