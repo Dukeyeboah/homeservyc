@@ -11,17 +11,26 @@ import {
 } from 'firebase/auth';
 import { auth } from './firebase';
 
+function assertLiveMode() {
+  if (process.env.NEXT_PUBLIC_LOCAL_PREVIEW === 'true') {
+    throw new Error('Local preview: sign-in and account changes are disabled.');
+  }
+}
+
 const googleProvider = new GoogleAuthProvider();
 
 export async function signInWithEmail(email: string, password: string) {
+  assertLiveMode();
   return await signInWithEmailAndPassword(auth, email, password);
 }
 
 export async function signUpWithEmail(email: string, password: string) {
+  assertLiveMode();
   return await createUserWithEmailAndPassword(auth, email, password);
 }
 
 export async function signInWithGoogle() {
+  assertLiveMode();
   return await signInWithPopup(auth, googleProvider);
 }
 
@@ -29,6 +38,7 @@ export async function signInWithPhone(
   phoneNumber: string,
   recaptchaVerifier: RecaptchaVerifier
 ) {
+  assertLiveMode();
   return await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
 }
 
@@ -36,6 +46,7 @@ export async function signInWithPhone(
 let recaptchaVerifierInstance: RecaptchaVerifier | null = null;
 
 export async function createRecaptchaVerifier(containerId: string = 'recaptcha-container') {
+  assertLiveMode();
   // Clean up any existing verifier
   if (recaptchaVerifierInstance) {
     try {
@@ -121,10 +132,15 @@ export async function createRecaptchaVerifier(containerId: string = 'recaptcha-c
 }
 
 export async function signOut() {
+  assertLiveMode();
   return await firebaseSignOut(auth);
 }
 
 export function onAuthChange(callback: (user: User | null) => void) {
+  if (process.env.NEXT_PUBLIC_LOCAL_PREVIEW === 'true') {
+    callback(null);
+    return () => {};
+  }
   return onAuthStateChanged(auth, callback);
 }
 

@@ -2,16 +2,20 @@ import {
   collection,
   doc,
   setDoc,
-  getDoc,
   getDocs,
   deleteDoc,
   query,
   where,
   orderBy,
+  limit,
   Timestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Service } from './services';
+import { services, type Service } from './services';
+
+function assertLiveMode() {
+  if (process.env.NEXT_PUBLIC_LOCAL_PREVIEW === 'true') throw new Error('Local preview: database access is disabled.');
+}
 
 const SAVED_SERVICES_COLLECTION = 'savedServices';
 const RECOMMENDATIONS_COLLECTION = 'recommendations';
@@ -48,16 +52,17 @@ export async function saveService(
   userId: string,
   service: Service
 ): Promise<void> {
+  assertLiveMode();
   const savedServiceRef = doc(
     db,
     SAVED_SERVICES_COLLECTION,
     `${userId}_${service.id}`
   );
-  const savedService: SavedService = {
+  // Persist only a catalog reference, never a snapshot containing contact details.
+  const savedService = {
     id: `${userId}_${service.id}`,
     userId,
     serviceId: service.id,
-    service,
     savedAt: new Date(),
     category: service.categories[0] || 'Other',
   };
@@ -73,6 +78,7 @@ export async function unsaveService(
   userId: string,
   serviceId: number
 ): Promise<void> {
+  assertLiveMode();
   const savedServiceRef = doc(
     db,
     SAVED_SERVICES_COLLECTION,
@@ -86,19 +92,23 @@ export async function isServiceSaved(
   userId: string,
   serviceId: number
 ): Promise<boolean> {
-  const savedServiceRef = doc(
-    db,
-    SAVED_SERVICES_COLLECTION,
-    `${userId}_${serviceId}`
-  );
-  const docSnap = await getDoc(savedServiceRef);
-  return docSnap.exists();
+  assertLiveMode();
+  // An owner-filtered query also handles missing bookmarks without relying on
+  // a direct document read whose ownership cannot be proved when absent.
+  const snapshot = await getDocs(query(
+    collection(db, SAVED_SERVICES_COLLECTION),
+    where('userId', '==', userId),
+    where('serviceId', '==', serviceId),
+    limit(1)
+  ));
+  return !snapshot.empty;
 }
 
 // Get all saved services for a user
 export async function getSavedServices(
   userId: string
 ): Promise<SavedService[]> {
+  assertLiveMode();
   const q = query(
     collection(db, SAVED_SERVICES_COLLECTION),
     where('userId', '==', userId),
@@ -106,15 +116,24 @@ export async function getSavedServices(
   );
 
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      ...data,
+  return querySnapshot.docs.flatMap((snapshot) => {
+    const data = snapshot.data();
+    // Ignore legacy embedded snapshots entirely: they can contain stale private
+    // contact details. Removed catalog entries must not be resurrected either.
+    const service = services.find((entry) => entry.id === data.serviceId);
+    if (!service) return [];
+
+    return [{
+      id: snapshot.id,
+      userId,
+      serviceId: service.id,
+      service,
+      category: service.categories[0] || 'Other',
       savedAt:
         data.savedAt instanceof Timestamp
           ? data.savedAt.toDate()
           : new Date(data.savedAt),
-    } as SavedService;
+    }];
   });
 }
 
@@ -126,6 +145,7 @@ export async function submitRecommendation(
     'id' | 'userId' | 'submittedAt' | 'status'
   >
 ): Promise<void> {
+  assertLiveMode();
   const recommendationsRef = collection(db, RECOMMENDATIONS_COLLECTION);
   const newRecommendation: Recommendation = {
     ...recommendation,
@@ -134,8 +154,13 @@ export async function submitRecommendation(
     status: 'pending',
   };
 
-  await setDoc(doc(recommendationsRef), {
-    ...newRecommendation,
-    submittedAt: Timestamp.fromDate(newRecommendation.submittedAt),
-  });
+  // Firestore rejects undefined values. Optional recommender/contact/photo fields
+  // are deliberately absent on some submission paths (for example self-listing).
+  const payload = Object.fromEntries(
+    Object.entries({
+      ...newRecommendation,
+      submittedAt: Timestamp.fromDate(newRecommendation.submittedAt),
+    }).filter(([, value]) => value !== undefined)
+  );
+  await setDoc(doc(recommendationsRef), payload);
 }

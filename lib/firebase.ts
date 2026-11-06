@@ -39,6 +39,6 @@ export const db = getFirestore(app);
 
 // Initialize Analytics only in browser
 export const analytics =
-  typeof window !== 'undefined' ? getAnalytics(app) : null;
+  typeof window !== 'undefined' && process.env.NEXT_PUBLIC_LOCAL_PREVIEW !== 'true' ? getAnalytics(app) : null;
 
 export default app;

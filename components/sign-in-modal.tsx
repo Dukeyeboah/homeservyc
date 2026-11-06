@@ -1,5 +1,6 @@
 'use client';
 
+import { ModalFrame } from './modal-frame';
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,14 +20,11 @@ export function SignInModal({ onClose, onSignIn }: SignInModalProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-        <div
-          className="bg-card border border-border rounded-3xl sm:rounded-2xl max-w-md w-full shadow-2xl animate-in fade-in slide-in-from-bottom-8 sm:slide-in-from-center sm:zoom-in-95 duration-300"
-          onClick={(e) => e.stopPropagation()}
-        >
+      <ModalFrame title="Sign in required" onClose={onClose}>
           {/* Close Button */}
           <button
             onClick={onClose}
+            aria-label="Close sign in prompt"
             className="absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors"
           >
             <X size={20} className="text-foreground" />
@@ -39,7 +37,7 @@ export function SignInModal({ onClose, onSignIn }: SignInModalProps) {
                 Sign In Required
               </h2>
               <p className="text-muted-foreground">
-                To view contact information for service providers, please sign in to your account.
+                Sign in to save profiles and submit recommendations. Contact introductions are not available yet.
               </p>
             </div>
 
@@ -47,9 +45,9 @@ export function SignInModal({ onClose, onSignIn }: SignInModalProps) {
               <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                 <p className="text-sm font-medium text-foreground">Benefits of signing in:</p>
                 <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                  <li>Access to contact information</li>
+
                   <li>Save favorite service providers</li>
-                  <li>Get personalized recommendations</li>
+
                   <li>Submit and manage your own recommendations</li>
                 </ul>
               </div>
@@ -63,6 +61,7 @@ export function SignInModal({ onClose, onSignIn }: SignInModalProps) {
                 </Button>
                 <Button
                   onClick={onClose}
+            aria-label="Close sign in prompt"
                   variant="outline"
                   className="w-full"
                 >
@@ -71,8 +70,7 @@ export function SignInModal({ onClose, onSignIn }: SignInModalProps) {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+      </ModalFrame>
 
       {showAuthModal && (
         <AuthModal
@@ -86,4 +84,3 @@ export function SignInModal({ onClose, onSignIn }: SignInModalProps) {
     </>
   );
 }
-

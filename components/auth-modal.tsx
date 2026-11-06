@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { ModalFrame } from './modal-frame';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -181,14 +181,11 @@ export function AuthModal({ onClose, initialMode = 'signin' }: AuthModalProps) {
   if (!mounted) return null;
 
   const modalContent = (
-    <div className='fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto'>
-      <div
-        className='bg-card border border-border rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in-95 duration-300 relative'
-        onClick={(e) => e.stopPropagation()}
-      >
+    <ModalFrame title={mode === 'signup' ? 'Create account' : 'Sign in'} onClose={onClose}>
         {/* Close Button */}
         <button
           onClick={onClose}
+          aria-label='Close sign in'
           className='absolute top-4 right-4 p-2 hover:bg-muted rounded-full transition-colors z-10'
         >
           <X size={20} className='text-foreground' />
@@ -202,7 +199,7 @@ export function AuthModal({ onClose, initialMode = 'signin' }: AuthModalProps) {
             </h2>
             <p className='text-muted-foreground text-sm'>
               {mode === 'signup'
-                ? 'Join HappyHomes to access contact information and save your favorite service providers.'
+                ? 'Join HomeServyc to save profiles and share recommendations. Contact introductions are not available yet.'
                 : 'Welcome back! Sign in to continue.'}
             </p>
           </div>
@@ -427,10 +424,9 @@ export function AuthModal({ onClose, initialMode = 'signin' }: AuthModalProps) {
             </button>
           </div>
         </div>
-      </div>
-    </div>
+    </ModalFrame>
   );
 
   // Render modal using portal at document body level
-  return createPortal(modalContent, document.body);
+  return modalContent;
 }

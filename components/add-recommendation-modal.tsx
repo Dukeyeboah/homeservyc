@@ -2,6 +2,7 @@
 
 import type React from 'react';
 
+import { ModalFrame } from './modal-frame';
 import { useState } from 'react';
 import { X, Upload } from 'lucide-react';
 import { getAllCategories } from '@/lib/services';
@@ -101,18 +102,11 @@ export function AddRecommendationModal({
   };
 
   return (
-    <div
-      className='fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-end sm:items-center justify-center p-4'
-      onClick={onClose}
-    >
-      {/* Modal Container */}
-      <div
-        className='bg-card border border-border rounded-3xl sm:rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in slide-in-from-bottom-8 sm:slide-in-from-center sm:zoom-in-95 duration-300'
-        onClick={(e) => e.stopPropagation()}
-      >
+    <ModalFrame title="Add a recommendation" onClose={onClose} wide>
         {/* Close Button */}
         <button
           onClick={onClose}
+          aria-label='Close recommendation'
           className='sticky top-6 right-6 z-10 float-right p-2 hover:bg-muted rounded-full transition-colors'
         >
           <X size={24} className='text-foreground' />
@@ -419,7 +413,6 @@ export function AddRecommendationModal({
             recommendations are reviewed before appearing in the directory.
           </p>
         </form>
-      </div>
-    </div>
+    </ModalFrame>
   );
 }

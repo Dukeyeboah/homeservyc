@@ -6,16 +6,27 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Saved Services - Users can only read/write their own saved services
+    // Bookmarks contain only a catalog ID, never a copied service/contact record.
+    function validBookmark() {
+      return request.resource.data.keys().hasOnly(
+          ['id', 'userId', 'serviceId', 'savedAt', 'category']) &&
+        request.resource.data.keys().hasAll(
+          ['id', 'userId', 'serviceId', 'savedAt', 'category']) &&
+        request.resource.data.id is string &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.serviceId is int &&
+        request.resource.data.savedAt is timestamp &&
+        request.resource.data.category is string;
+    }
+
     match /savedServices/{savedServiceId} {
-      // Allow get if user owns the document
-      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      // Allow list queries - Firestore will filter by where('userId', '==', userId) automatically
-      allow list: if isAuthenticated();
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update: if isAuthenticated() && 
-                       resource.data.userId == request.auth.uid && 
-                       request.resource.data.userId == request.auth.uid;
+      // Rules are not filters: callers must constrain queries to their own UID.
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && validBookmark() &&
+                       request.resource.data.id == savedServiceId;
+      allow update: if isAuthenticated() &&
+                       resource.data.userId == request.auth.uid &&
+                       validBookmark() && request.resource.data.id == savedServiceId;
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
@@ -29,17 +40,23 @@ service cloud.firestore {
 
     // Recommendations - Users can create their own, admins can read/update
     match /recommendations/{recommendationId} {
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow read: if isAuthenticated() && 
-                     (resource == null || 
-                      resource.data.userId == request.auth.uid || 
-                      request.auth.token.admin == true);
-      allow update: if isAuthenticated() && 
-                       (resource.data.userId == request.auth.uid || 
-                        request.auth.token.admin == true);
-      allow delete: if isAuthenticated() && 
-                       (resource.data.userId == request.auth.uid || 
-                        request.auth.token.admin == true);
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.status == 'pending';
+      allow read: if isAuthenticated() &&
+                     (resource.data.userId == request.auth.uid ||
+                      request.auth.token.get('admin', false) == true);
+      // Only admins can moderate. Neither owners nor admins can transfer ownership.
+      allow update: if isAuthenticated() &&
+                       request.resource.data.userId == resource.data.userId &&
+                       request.resource.data.status in ['pending', 'approved', 'rejected'] &&
+                       (request.auth.token.get('admin', false) == true ||
+                        (resource.data.userId == request.auth.uid &&
+                         resource.data.status == 'pending' &&
+                         request.resource.data.status == resource.data.status));
+      allow delete: if isAuthenticated() &&
+                       (resource.data.userId == request.auth.uid ||
+                        request.auth.token.get('admin', false) == true);
     }
 
     // Deny all other access

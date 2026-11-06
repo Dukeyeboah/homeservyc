@@ -1,7 +1,7 @@
 'use client';
 
-import Image from 'next/image';
-import { ChevronRight, Bookmark, BookmarkCheck } from 'lucide-react';
+import { CategoryIcon, categoryStyle } from './category-icon';
+import { ChevronRight, Bookmark, BookmarkCheck, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { useState, useEffect } from 'react';
 import { isServiceSaved, saveService, unsaveService } from '@/lib/firestore';
@@ -37,6 +37,8 @@ export function ServiceCard({
   useEffect(() => {
     if (isAuthenticated && user) {
       checkIfSaved();
+    } else {
+      setIsSaved(false);
     }
   }, [isAuthenticated, user, id]);
 
@@ -75,7 +77,6 @@ export function ServiceCard({
             workType,
             description,
             location,
-            phoneNumber: '',
           } as Service);
         await saveService(user.uid, serviceToSave);
         setIsSaved(true);
@@ -87,78 +88,19 @@ export function ServiceCard({
     }
   };
 
+  const tone = categoryStyle(categories[0]);
+  const initials = name.split(' ').filter(Boolean).slice(0,2).map(n => n[0]).join('');
   return (
-    <div className='group relative bg-card border border-border rounded-2xl p-6 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1'>
-      {/* Bookmark Button */}
-      {isAuthenticated && (
-        <button
-          onClick={handleBookmarkClick}
-          disabled={saving}
-          className='absolute top-4 right-4 p-2 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background transition-colors z-10'
-          title={isSaved ? 'Remove from saved' : 'Save to dashboard'}
-        >
-          {isSaved ? (
-            <BookmarkCheck size={20} className='text-[#dc143c]' />
-          ) : (
-            <Bookmark
-              size={20}
-              className='text-muted-foreground hover:text-[#dc143c]'
-            />
-          )}
-        </button>
-      )}
-
-      <button onClick={onClick} className='w-full text-left cursor-pointer'>
-        {/* Profile Section */}
-        <div className='flex items-start gap-4 mb-4'>
-          {/* Profile Image - Commented out for now */}
-          {/* <div className="relative w-16 h-16 flex-shrink-0 rounded-full overflow-hidden bg-muted">
-          <Image src={profileImage || "/placeholder.svg"} alt={name} fill className="object-cover" />
-        </div> */}
-          <div className='flex-1 min-w-0'>
-            <h3 className='text-lg font-medium text-foreground truncate'>
-              {name}
-            </h3>
-            <p className='text-sm text-muted-foreground mt-1'>{location}</p>
-          </div>
-        </div>
-
-        {/* Categories Tags */}
-        <div className='flex flex-wrap gap-2 mb-4'>
-          {categories.map((cat) => (
-            <span
-              key={cat}
-              className='inline-block px-3 py-1 bg-muted text-foreground text-xs font-medium rounded-full'
-            >
-              {cat}
-            </span>
-          ))}
-        </div>
-
-        {/* Work Type Badge */}
-        <div className='flex items-center gap-2 mb-3'>
-          <span
-            className={`inline-block px-2 py-1 text-xs font-medium rounded ${
-              workType === 'Full-time'
-                ? 'bg-primary/10 text-primary'
-                : 'bg-accent/10 text-accent'
-            }`}
-          >
-            {workType}
-          </span>
-        </div>
-
-        {/* Description */}
-        <p className='text-sm text-muted-foreground line-clamp-2 mb-4'>
-          {description}
-        </p>
-
-        {/* View Details Button */}
-        <div className='flex items-center gap-2 text-sm font-medium text-primary group-hover:gap-3 transition-all'>
-          View Details
-          <ChevronRight size={16} />
-        </div>
+    <article className="provider-card" style={{ '--role-color': tone.color, '--role-light': tone.light } as React.CSSProperties}>
+      <div className="provider-topline"><span>HOMESERVYC / COMMUNITY PROFILE</span></div>
+      {isAuthenticated && <button onClick={handleBookmarkClick} disabled={saving} className="absolute right-4 top-12 z-10 bg-white p-2 rounded-full" aria-label={isSaved ? 'Remove from saved' : 'Save to dashboard'}>{isSaved ? <BookmarkCheck size={18}/> : <Bookmark size={18}/>}</button>}
+      <button onClick={onClick} className="provider-body" aria-label={`View profile: ${name}`}>
+        <div className="flex items-center gap-4"><div className="provider-initials" aria-hidden="true">{initials}</div><div className="min-w-0"><h3 className="provider-name">{name}</h3><div className="provider-location"><MapPin size={13} className="shrink-0"/>{location}</div></div></div>
+        <div className="role-stamps">{categories.map(cat => <span className="role-stamp" key={cat}><CategoryIcon category={cat} small/><span>{cat}</span></span>)}</div>
+        <div className="provider-arrangement"><span>{workType}</span><span>Availability unconfirmed</span></div>
+        <p className="provider-description">{description}</p>
+        <div className="provider-bottom"><span>Community submitted · Not verified</span><span className="provider-arrow"><ChevronRight size={18}/></span></div>
       </button>
-    </div>
+    </article>
   );
 }
