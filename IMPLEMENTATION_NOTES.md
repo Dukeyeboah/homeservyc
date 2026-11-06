@@ -110,3 +110,10 @@ Sensitive: do not request government ID numbers/images, exact home address, birt
 - Search includes a decorative magnifying glass and role/location/name placeholder; result count uses 12px italic type.
 - Verified desktop dot navigation, filter visibility and retained selections, combined search/filtering, and mobile layout at 320px without document overflow. Production build (including TypeScript) and all 9 search/privacy/phone/category tests passed.
 - This commit also includes the previously reviewed local personnel-form refinements and compact mobile controls described above. No deployment or live contact workflow was performed.
+
+## Private workflow review branch
+- Centered, width-limited desktop search expands to one row with Work arrangement, Sort by and Filters at the far right. Parenthesized logged-out hint sits 8px below the button and only renders signed out. Footer now © HomeServyc 2026.
+- Added service areas/availability, optional experience/skills/rates, recommender relationship/last-use date, and distinct self-declared WhatsApp, contact-request, profile and photo permissions. Recommender mode cannot grant provider consent.
+- Implemented private photo API and submission attachment, plus authenticated contact-request API, disabled outbox sender and signed webhook approval handling. See PRIVATE_WORKFLOWS_SETUP.md for configuration, security boundaries and blockers. These are implemented integration paths, not verified live services.
+- Verified desktop filter order visually, mobile form at 320px (document 320px; dialog client/scroll widths 288px), self/recommender conditional content, keyboard focus and Escape dismissal. Hint geometry is 8px. Production build and TypeScript pass; all 14 unit tests pass.
+- No production mutations, real messages, credentials, deployment or merge. New workflows remain disabled. Audit findings and required staging/integration checks are documented as launch blockers.

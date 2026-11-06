@@ -43,6 +43,7 @@ export interface Recommendation {
   recommenderPhone?: string;
   recommenderPhoneWhatsApp?: boolean;
   photoUrl?: string;
+  details?: Record<string, string | boolean>;
   submittedAt: Date;
   status: 'pending' | 'approved' | 'rejected';
 }
@@ -144,7 +145,7 @@ export async function submitRecommendation(
     Recommendation,
     'id' | 'userId' | 'submittedAt' | 'status'
   >
-): Promise<void> {
+): Promise<string> {
   assertLiveMode();
   const recommendationsRef = collection(db, RECOMMENDATIONS_COLLECTION);
   const newRecommendation: Recommendation = {
@@ -162,5 +163,7 @@ export async function submitRecommendation(
       submittedAt: Timestamp.fromDate(newRecommendation.submittedAt),
     }).filter(([, value]) => value !== undefined)
   );
-  await setDoc(doc(recommendationsRef), payload);
+  const ref = doc(recommendationsRef);
+  await setDoc(ref, payload);
+  return ref.id;
 }

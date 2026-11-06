@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHmac} from 'node:crypto';
+import {validSignature,canDecide,canDisclose,digest} from '../lib/server/contact-policy.ts';
+const now=1800000000000; const token='a'.repeat(64);
+const provider={active:true,phoneVerified:true,whatsappOptIn:true,whatsappSenderId:'233000000000',contactVersion:'v1'};
+const request={requesterId:'alice',status:'pending',tokenHash:digest(token),expiresAt:now+10000,createdAt:now-1000,providerVersion:'v1',messageId:'outbound-id'};
+const message={from:provider.whatsappSenderId,context:{id:'outbound-id'},timestamp:String(now/1000)};
+test('raw webhook signature rejects forged, missing and changed payloads',()=>{const raw='{"ok":true}'; const signature='sha256='+createHmac('sha256','test-secret').update(raw).digest('hex');assert.equal(validSignature(raw,signature,'test-secret'),true);assert.equal(validSignature(raw+' ',signature,'test-secret'),false);assert.equal(validSignature(raw,signature,'wrong'),false);assert.equal(validSignature(raw,null,'test-secret'),false);});
+test('only intended provider can decide the unexpired pending request',()=>{assert.equal(canDecide(request,provider,message,token,now),true);for(const altered of [{...message,from:'attacker'},{...message,context:{id:'another-message'}},{...message,timestamp:'0'}]) assert.equal(canDecide(request,provider,altered,token,now),false);assert.equal(canDecide(request,provider,message,'wrong',now),false);assert.equal(canDecide({...request,expiresAt:now-1},provider,message,token,now),false);});
+test('replayed approvals, declines, revoked opt-in and changed contact fail closed',()=>{for(const status of ['approved','declined','queued']) assert.equal(canDecide({...request,status},provider,message,token,now),false);for(const altered of [{...provider,whatsappOptIn:false},{...provider,phoneVerified:false},{...provider,contactVersion:'v2'}]) assert.equal(canDecide(request,altered,message,token,now),false);});
+test('disclosure is requester-specific, expiring and revocable',()=>{const approved={...request,status:'approved',accessExpiresAt:now+10000};assert.equal(canDisclose(approved,provider,'alice',now),true);assert.equal(canDisclose(approved,provider,'bob',now),false);assert.equal(canDisclose(request,provider,'alice',now),false);assert.equal(canDisclose({...approved,accessExpiresAt:now-1},provider,'alice',now),false);assert.equal(canDisclose(approved,{...provider,active:false},'alice',now),false);assert.equal(canDisclose(approved,{...provider,contactVersion:'v2'},'alice',now),false);});
+import {limitedBody} from '../lib/server/body.ts';
+test('bounded request body rejects actual size even without content-length',async()=>{await assert.rejects(()=>limitedBody(new Request('http://localhost',{method:'POST',body:'12345'}),4));const body=await limitedBody(new Request('http://localhost',{method:'POST',body:'1234'}),4);assert.equal(new TextDecoder().decode(body),'1234');});

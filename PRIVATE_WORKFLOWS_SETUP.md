@@ -1,0 +1,38 @@
+# Private photos and contact requests — review branch
+
+Implemented source code, NOT a live integration. No credentials were added, messages sent, provider consents recorded, security rules deployed, or production settings changed. Local preview rejects all private backend access. Public seed profiles are not eligible automatically.
+
+## Required external setup
+- Host Next.js with Node server routes (static-only hosting is insufficient).
+- Configure server-only Application Default Credentials with least-privilege Firebase Auth verification, Firestore and private Storage access. Set GOOGLE_CLOUD_PROJECT and PRIVATE_STORAGE_BUCKET. Do not expose service account credentials to the browser or source control.
+- Review/deploy Firestore and Storage rules in a staging project first. All new private collections are denied by the existing default rule. The proposed storage.rules denies all client access; review other bucket consumers before applying it. Ensure the bucket has no public IAM access and no public download tokens. Do not deploy these changes as part of this review.
+- Set PRIVATE_WORKFLOWS_ENABLED=true only after authorization and staging verification; NEXT_PUBLIC_LOCAL_PREVIEW=true still disables backend access.
+- Configure Meta business account, registered sending number, approved template, required API permissions, access token and public HTTPS webhook. Server-only names: WHATSAPP_BUSINESS_ACCOUNT_ID, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, META_APP_SECRET, WHATSAPP_VERIFY_TOKEN, WHATSAPP_TEMPLATE_NAME, WHATSAPP_TEMPLATE_LANGUAGE, WHATSAPP_GRAPH_VERSION. Pin a currently supported Graph version during setup.
+- Template: one body parameter identifying the requester by an opaque HomeServyc member reference; two quick-reply buttons in order Approve, Decline. Explain that approval shares this provider's separately collected app contact number with that one requester for seven days. Explain decline and how to withdraw consent. Submit the actual wording for approval before enabling sending. Do not forward content collected from another WhatsApp conversation.
+- Verify /api/whatsapp/webhook and subscribe to messages. Validate actual template button.payload and interactive.button_reply.id callbacks against test accounts. Delivery notifications never create approval.
+- WHATSAPP_SEND_ENABLED=true is a separate operator-controlled sending gate. Only then run scripts/send-whatsapp-outbox.mjs using an authorized scheduler/worker. This script was not run.
+
+## Provider onboarding is still a blocker
+An authorized verification/moderation process must separately create privateProviders/{publicNumericProfileId} with active:true, phoneVerified:true, whatsappOptIn:true, phoneNumber (E.164), whatsappSenderId (confirmed Meta sender identifier), and contactVersion (opaque revision). Keep evidence of number ownership, opt-in and publishing/photo permission privately. Do not derive verification from client checkboxes, recommender claims or seed data. A changed number or withdrawn permission must deactivate the record/increment contactVersion. Approval records are invalidated by version mismatch. Provider onboarding, claim UI, withdrawal UI and moderation/publishing UI remain to be built; until then records stay absent and requests fail closed.
+
+Self-listing checkboxes are declarations only, not proof of identity/ownership. Recommenders cannot set provider declarations through the form; even maliciously edited submissions do not populate privateProviders. Publishing, photo permission, WhatsApp opt-in and per-request contact disclosure are separate decisions.
+
+## Request behavior and operational limits
+- Firebase ID token verified server-side with revocation checking. Request IDs hash requester UID and provider ID; private records never returned wholesale.
+- Transactionally create one request per pair and limit each account to five new requests/day. Repeat POSTs reuse the existing request and never enqueue another message. Further requests after expiry/decline require operator review; no automatic resend.
+- 256-bit random token bound by hash, intended provider, business account/number, outgoing message context, pending status and 24-hour expiry. Webhook verifies HMAC-SHA256 on exact raw body. Transactional event deduplication and terminal status prevent replay.
+- Every contact GET rechecks requester UID, provider status/version and seven-day grant expiry. Approval permits seeing an app-stored number and opening wa.me; it does not send a user message. Revocation cannot make a previously seen number unknown to someone.
+- Sending worker claims each queued job once. Ambiguous transport errors or DB failures become needs-review and are not retried automatically. A crash while sending can leave a sending job; reconcile with Meta before any operator retry. If a valid sender/token reply races message-ID persistence, the webhook returns non-2xx so Meta can retry; no approval occurs before the outgoing context is saved. This race still needs staging verification. Provider rejection never reveals a number.
+- Add infrastructure request-body limits (12 MB multipart, 1 MB webhook, small JSON), WAF/account-abuse controls, observability without tokens/numbers, retention/deletion and queued-job monitoring before enabling production. The current account quota is not a substitute for distributed abuse prevention.
+
+## Photo persistence
+After recommendation submission, an authenticated multipart upload ties the photo to that user's pending recommendation. JPEG/PNG/WebP <=10 MB is decoded with a 25MP pixel limit, orientation normalized, resized to <=1200px and re-encoded WebP without EXIF metadata. Private deterministic object path prevents duplicate retry objects. Owner-only GET streams the photo with no-store. No public URL is created. Upload failure preserves the saved recommendation ID for retry without duplicate submission. Photo publication/display on public cards awaits verified consent, moderation and a separate publication pipeline. Add orphan cleanup and test interrupted/parallel uploads before launch.
+
+## Validation performed / still required
+Local policy tests cover tampered signatures, wrong sender/message/token, expiry, non-pending replay, withdrawn opt-in, changed phone revision and cross-requester disclosure. Existing search/privacy, phone and category tests are retained. Type checking/build and visual checks recorded in implementation notes.
+Not end-to-end verified: Firebase credentials, deployed rules/IAM, storage write/read, signed authenticated HTTP requests, emulator transactions/concurrency, actual Meta template/send/delivery/callback, callback retry race, provider opt-in/ownership, or revocation in a live account. Use a separate Firebase project, private bucket and Meta test recipients for the integration test before enabling any live sending. Pure unit tests do not establish that the deployed service is secure or operational.
+
+References: https://firebase.google.com/docs/auth/admin/verify-id-tokens ; https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/reference/messages/button.md/ ; https://whatsappbusiness.com/policy/
+
+## Dependency audit blocker
+The current dependency audit reports 14 findings (including one critical in the existing Next.js version, high findings in the Firebase dependency chain, PostCSS, Sharp through Next, and Zod). The audit suggests Next 16.4.5, but other suggestions include major-version changes/downgrades. No blanket npm audit fix --force was applied. Resolve and regression-test dependency advisories before exposing these server routes publicly. The workflows remain disabled.

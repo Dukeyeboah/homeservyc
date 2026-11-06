@@ -23,13 +23,13 @@ export function ServiceGrid({ onServiceClick, filters }: ServiceGridProps) {
   return (
     <section id="services" className="scroll-mt-24 px-4 pt-5 pb-12 md:pt-6 md:pb-16">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 mb-5 items-end">
+        <div className={`grid grid-cols-[minmax(0,1fr)_auto] gap-3 mb-5 items-end mx-auto w-full ${filtersOpen ? 'lg:max-w-5xl lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto]' : 'max-w-2xl'}`}>
           <div className="relative min-w-0"><Search aria-hidden="true" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"/><input aria-label="Search by role, location or name" type="search" value={filters.search} onChange={(e) => update({ search: e.target.value })} placeholder="Search for a role, location or name…" className={`${control} min-w-0 pl-11`} /></div>
-          <button type="button" aria-label="Toggle filters" aria-expanded={filtersOpen} aria-controls="directory-filters" onClick={() => setFiltersOpen(!filtersOpen)} className={`relative rounded-xl border p-3 focus-visible:outline-2 focus-visible:outline-primary ${filtersOpen ? 'border-primary bg-secondary' : 'border-border bg-card'}`}>
+          <button type="button" aria-label="Toggle filters" aria-expanded={filtersOpen} aria-controls="directory-filters" onClick={() => setFiltersOpen(!filtersOpen)} className={`lg:order-4 relative rounded-xl border p-3 focus-visible:outline-2 focus-visible:outline-primary ${filtersOpen ? 'border-primary bg-secondary' : 'border-border bg-card'}`}>
             <span className="flex items-center gap-2"><SlidersHorizontal size={20} aria-hidden="true"/><span className="hidden sm:inline text-sm">Filters</span></span>
             {(workType || sort !== 'directory') && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-primary" aria-label="Filters applied" />}
           </button>
-          <div id="directory-filters" className={`${filtersOpen ? 'grid' : 'hidden'} grid-cols-2 gap-3 col-span-2 sm:max-w-xl`}>
+          <div id="directory-filters" className={`${filtersOpen ? 'grid lg:contents' : 'hidden'} grid-cols-2 gap-3 col-span-2`}>
             <label className="min-w-0 text-xs space-y-2"><span>Work arrangement</span><select value={workType ?? ''} onChange={(e) => setWorkType(e.target.value || null)} className={`${control} min-w-0 px-2 sm:px-4`}><option value="">Any arrangement</option><option>Full-time</option><option>Part-time</option></select></label>
             <label className="min-w-0 text-xs space-y-2"><span>Sort by</span><select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className={`${control} min-w-0 px-2 sm:px-4`}><option value="directory">Directory order</option><option value="name">Name: A–Z</option></select></label>
           </div>

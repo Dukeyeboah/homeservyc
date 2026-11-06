@@ -4,6 +4,7 @@ import type React from 'react';
 
 import { ModalFrame } from './modal-frame';
 import { useState, useRef } from 'react';
+import { RecommendationDetails, initialDetails } from './recommendation-details';
 import { X, Upload } from 'lucide-react';
 import { getAllCategories } from '@/lib/services';
 import { useAuth } from '@/contexts/auth-context';
@@ -38,6 +39,8 @@ export function AddRecommendationModal({
     recommenderPhone: '',
     recommenderPhoneWhatsApp: false,
   });
+  const [details, setDetails] = useState(initialDetails);
+  const [savedSubmissionId, setSavedSubmissionId] = useState<string | null>(null);
   const photoInput = useRef<HTMLInputElement>(null);
   const [photoError, setPhotoError] = useState('');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -93,7 +96,8 @@ export function AddRecommendationModal({
 
     setSubmitting(true);
     try {
-      await submitRecommendation(user.uid, {
+      const submissionId = savedSubmissionId ?? await submitRecommendation(user.uid, {
+        details: {...details, whatsappConsent: userType === 'service-personnel' && details.whatsappConsent, contactConsent: userType === 'service-personnel' && details.contactConsent, publishingConsent: userType === 'service-personnel' && details.publishingConsent, photoConsent: userType === 'service-personnel' && details.photoConsent},
         userType,
         name: formData.name,
         categories: formData.categories,
@@ -111,6 +115,12 @@ export function AddRecommendationModal({
         // photoUrl will be handled when we implement file upload
       });
 
+      setSavedSubmissionId(submissionId);
+      if (photoFile) {
+        const upload = new FormData(); upload.set('photo', photoFile); upload.set('recommendationId', submissionId);
+        const response = await fetch('/api/photos', {method:'POST',headers:{Authorization:`Bearer ${await user.getIdToken()}`},body:upload});
+        if (!response.ok) { setFormError('Your recommendation was saved, but the photo was not uploaded. Retry to upload it without creating another recommendation.'); return; }
+      }
       alert(
         'Thank you for your recommendation! It will be reviewed and added to the directory soon.'
       );
@@ -169,7 +179,7 @@ export function AddRecommendationModal({
               <div><label htmlFor="person-name" className="block text-sm font-medium mb-2">Full name</label><input id="person-name" type="text" autoComplete="name" required value={formData.name} onChange={e => setFormData(prev => ({...prev, name:e.target.value}))} placeholder="John Doe" className="person-input"/></div>
               <div><label htmlFor="person-location" className="block text-sm font-medium mb-2">Location / Area</label><input id="person-location" type="text" value={formData.location} onChange={e => setFormData(prev => ({...prev, location:e.target.value}))} placeholder="e.g., Accra, Osu" className="person-input"/></div>
             </div>
-            <p id="photo-help" className="person-photo-help text-xs text-muted-foreground">JPG, PNG or WebP · Up to 10 MB · Preview only for now</p>
+            <p id="photo-help" className="person-photo-help text-xs text-muted-foreground">JPG, PNG or WebP · Up to 10 MB · Stored privately for review after submission</p>
             {photoError && <p role="alert" className="person-photo-help text-xs text-destructive">{photoError}</p>}
           </section>
 
@@ -272,10 +282,13 @@ export function AddRecommendationModal({
             />
           </div>
 
+          <RecommendationDetails value={details} onChange={setDetails} self={userType === 'service-personnel'} />
+
           {formError && <p role="alert" className="text-sm text-destructive">{formError}</p>}
           {/* Submit Button */}
           <button
             type='submit'
+            style={!isAuthenticated ? { marginBottom: 0 } : undefined}
             disabled={
               !formData.name ||
               formData.categories.length === 0 ||
@@ -290,9 +303,11 @@ export function AddRecommendationModal({
             {submitting
               ? 'Submitting...'
               : !isAuthenticated
-              ? 'Please Log in'
-              : 'Submit Recommendation'}
+              ? 'Log in'
+              : savedSubmissionId ? 'Retry photo upload' : 'Submit Recommendation'}
           </button>
+
+          {!isAuthenticated && <p style={{ marginTop: 8 }} className="text-xs text-muted-foreground text-center">(You need to be logged in to add a service provider or recommend someone.)</p>}
 
           {/* Disclaimer */}
           <p className='text-xs text-muted-foreground text-center'>
